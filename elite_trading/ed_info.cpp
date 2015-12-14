@@ -352,11 +352,11 @@ void ED_Info::thread_func(
 	std::vector<std::shared_ptr<SingleStopTradingRoute>> result;
 	auto n = src_locations->size();
 	for (size_t i = thread_id; i < n; i += thread_count){
-		if (_this->progress % 1000 == 0){
+		auto progress = _this->progress++;
+		if (progress % 1000 == 0){
 			std::lock_guard<std::mutex> lg(_this->cout_mutex);
-			std::cout << '\r' << _this->progress << '/' << n << std::flush;
+			std::cout << '\r' << progress << '/' << n << std::flush;
 		}
-		++_this->progress;
 		auto &src_location = (*src_locations)[i];
 		for (auto &dst_location : *dst_locations){
 			if (src_location->commodity->id != dst_location->commodity->id || dst_location->price <= src_location->price || dst_location->price - src_location->price < 1000)
@@ -508,13 +508,13 @@ void ED_Info::recompute_all_routes(){
 			assert(entry.commodity->average_price.is_initialized());
 			std::shared_ptr<TradingLocation> loc;
 			auto average = entry.commodity->average_price.value();
-			if (entry.sell < average){
-				loc.reset(new TradingLocation{ station.get(), entry.commodity.get(), entry.sell });
+			if (entry.buy && entry.buy < average){
+				loc.reset(new TradingLocation{ station.get(), entry.commodity.get(), entry.buy });
 				src_locations.push_back(loc);
 			}
-			if (entry.buy > average){
+			if (entry.sell && entry.sell > average){
 				if (!loc)
-					loc.reset(new TradingLocation{ station.get(), entry.commodity.get(), entry.buy });
+					loc.reset(new TradingLocation{ station.get(), entry.commodity.get(), entry.sell });
 				dst_locations.push_back(loc);
 			}
 		}
@@ -646,8 +646,8 @@ bool segments_by_profit(const std::shared_ptr<RouteSegment> &a, const std::share
 	return a->calculate_profit() > b->calculate_profit();
 }
 
-bool segments_by_efficiency(const std::shared_ptr<RouteSegment> &a, const std::shared_ptr<RouteSegment> &b){
-	return a->calculate_efficiency() > b->calculate_efficiency();
+bool segments_by_fitness(const std::shared_ptr<RouteSegment> &a, const std::shared_ptr<RouteSegment> &b){
+	return a->calculate_fitness() > b->calculate_fitness();
 }
 
 void ED_Info::find_routes(StarSystem *around_system, unsigned max_capacity, u64 initial_funds){
@@ -698,7 +698,7 @@ void ED_Info::find_routes(StarSystem *around_system, unsigned max_capacity, u64 
 		//	routes.resize(routes.size() / 5);
 		//}
 		if (!loop || routes.size() > max_routes_per_loop){
-			std::sort(routes.begin(), routes.end(), segments_by_efficiency);
+			std::sort(routes.begin(), routes.end(), segments_by_fitness);
 			if (routes.size() > max_routes_per_loop)
 				routes.resize(max_routes_per_loop);
 			if (!loop)

@@ -1,5 +1,41 @@
 #include "route_segment.h"
 
+bool RouteSegment::meets_constraints(std::set<u64> &visited){
+	if (!this->memo_constraints.is_initialized()){
+		if (this->station_src->max_landing_pad_size < 1)
+			this->memo_constraints = false;
+		else{
+			if (visited.find(this->station_src->id) != visited.end())
+				this->memo_constraints = false;
+			else{
+				if (!this->previous_segment)
+					this->memo_constraints = true;
+				else{
+					visited.insert(this->station_src->id);
+					this->memo_constraints = this->previous_segment->meets_constraints(visited);
+				}
+			}
+		}
+	}
+	return this->memo_constraints.value();
+}
+
+double RouteSegment::calculate_fitness(){
+	if (!this->memo_fitness.is_initialized()){
+		if (this->station_dst->max_landing_pad_size < 1)
+			this->memo_fitness = 0;
+		else{
+			std::set<u64> visited;
+			visited.insert(this->station_dst->id);
+			if (!this->meets_constraints(visited))
+				this->memo_fitness = 0;
+			else
+				this->memo_fitness = this->calculate_efficiency();
+		}
+	}
+	return this->memo_fitness.value();
+}
+
 double RouteSegment::ls_to_cost(double ls){
 	return ls > 0 ? sqrt(ls) * 1.8973665961010275991993361266596 : 0;
 }

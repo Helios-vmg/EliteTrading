@@ -3,13 +3,17 @@
 #include "basic_string_type.h"
 #include "station.h"
 #include <boost/optional.hpp>
+#include <set>
 
 class RouteSegment{
 	boost::optional<double> memo_efficiency,
-		memo_cost;
+		memo_cost,
+		memo_fitness;
 	boost::optional<u64> memo_profit, memo_expenditure;
 	boost::optional<unsigned> memo_quantity;
+	boost::optional<bool> memo_constraints;
 	double calculate_cost(bool ignore_src, bool ignore_dst) const;
+	bool meets_constraints(std::set<u64> &);
 public:
 	RouteSegment(u64 id, Station *src, Station *dst, Commodity *c, double approx_dist, u64 profit, unsigned max_capacity = std::numeric_limits<unsigned>::max(), u64 funds = std::numeric_limits<u64>::max()) {
 		this->id = id;
@@ -37,6 +41,7 @@ public:
 			this->memo_profit = (this->previous_segment ? this->previous_segment->calculate_profit() : 0) + this->segment_profit();
 		return this->memo_profit.value();
 	}
+	double calculate_fitness();
 	double calculate_efficiency(){
 		if (!this->memo_efficiency.is_initialized())
 			this->memo_efficiency = this->calculate_profit() / this->calculate_cost();
