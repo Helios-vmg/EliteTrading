@@ -343,36 +343,49 @@ void ED_Info::thread_func(
 		ED_Info *_this,
 		unsigned thread_id,
 		unsigned thread_count,
-		std::vector<std::shared_ptr<TradingLocation>> *src_locations,
-		std::vector<std::shared_ptr<TradingLocation>> *dst_locations,
+		std::map<u64, std::vector<std::shared_ptr<TradingLocation>>> *src_locations,
+		std::map<u64, std::vector<std::shared_ptr<TradingLocation>>> *dst_locations,
 		Statement *route_stmt,
 		DB *db,
 		std::mutex *db_mutex
 ){
 	std::vector<std::shared_ptr<SingleStopTradingRoute>> result;
-	auto n = src_locations->size();
-	for (size_t i = thread_id; i < n; i += thread_count){
-		auto progress = _this->progress++;
-		if (progress % 1000 == 0){
-			std::lock_guard<std::mutex> lg(_this->cout_mutex);
-			std::cout << '\r' << progress << '/' << n << std::flush;
-		}
-		auto &src_location = (*src_locations)[i];
-		for (auto &dst_location : *dst_locations){
-			if (src_location->commodity->id != dst_location->commodity->id || dst_location->price <= src_location->price || dst_location->price - src_location->price < 1000)
-				continue;
-			std::shared_ptr<SingleStopTradingRoute> route(new SingleStopTradingRoute(src_location.get(), dst_location.get(), _this->max_hop_distance));
-			if (_this->max_stop_distance >= 0 && route->approximate_distance > _this->max_stop_distance)
-				continue;
-			result.push_back(route);
-			if (result.size() >= primes[thread_id] * 1000000){
-				{
-					std::lock_guard<std::mutex> lg(*db_mutex);
-					Transaction t(*db);
-					for (auto &i : result)
-						i->save(*route_stmt, *db);
+	size_t n = 0;
+	for (auto &kv : *src_locations){
+		auto it2 = dst_locations->find(kv.first);
+		if (it2 == dst_locations->end())
+			continue;
+		n += kv.second.size();
+	}
+	for (auto &kv : *src_locations){
+		auto it2 = dst_locations->find(kv.first);
+		if (it2 == dst_locations->end())
+			continue;
+		auto m = kv.second.size();
+		for (size_t i = thread_id; i < m; i += thread_count){
+			auto progress = _this->progress++;
+			if (progress % 1000 == 0){
+				std::lock_guard<std::mutex> lg(_this->cout_mutex);
+				std::cout << '\r' << progress * 100 / n << '%' << std::flush;
+			}
+			auto &src_location = kv.second[i];
+			for (auto &dst_location : it2->second){
+				assert(src_location->commodity->id == dst_location->commodity->id);
+				if (dst_location->price <= src_location->price || dst_location->price - src_location->price < 1000)
+					continue;
+				std::shared_ptr<SingleStopTradingRoute> route(new SingleStopTradingRoute(src_location.get(), dst_location.get(), _this->max_hop_distance));
+				if (_this->max_stop_distance >= 0 && route->approximate_distance > _this->max_stop_distance)
+					continue;
+				result.push_back(route);
+				if (result.size() >= primes[thread_id] * 1000000){
+					{
+						std::lock_guard<std::mutex> lg(*db_mutex);
+						Transaction t(*db);
+						for (auto &i : result)
+							i->save(*route_stmt, *db);
+					}
+					result.clear();
 				}
-				result.clear();
 			}
 		}
 	}
@@ -499,7 +512,7 @@ ED_Info::ED_Info(const ImportDataCommand &): max_stop_distance(-1), max_hop_dist
 }
 
 void ED_Info::recompute_all_routes(){
-	std::vector<std::shared_ptr<TradingLocation>> src_locations,
+	std::map<u64, std::vector<std::shared_ptr<TradingLocation>>> src_locations,
 		dst_locations;
 	for (auto &station : this->stations){
 		if (!station)
@@ -510,12 +523,12 @@ void ED_Info::recompute_all_routes(){
 			auto average = entry.commodity->average_price.value();
 			if (entry.buy && entry.buy < average){
 				loc.reset(new TradingLocation{ station.get(), entry.commodity.get(), entry.buy });
-				src_locations.push_back(loc);
+				src_locations[loc->commodity->id].push_back(loc);
 			}
 			if (entry.sell && entry.sell > average){
 				if (!loc)
 					loc.reset(new TradingLocation{ station.get(), entry.commodity.get(), entry.sell });
-				dst_locations.push_back(loc);
+				dst_locations[loc->commodity->id].push_back(loc);
 			}
 		}
 	}
@@ -535,6 +548,7 @@ void ED_Info::recompute_all_routes(){
 	}
 	for (auto &t : threads)
 		t->join();
+	std::cout << std::endl;
 }
 
 void ED_Info::set_max_hop_distance(double d){

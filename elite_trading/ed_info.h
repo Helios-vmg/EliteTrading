@@ -85,8 +85,8 @@ class ED_Info{
 		ED_Info *_this,
 		unsigned thread_id,
 		unsigned thread_count,
-		std::vector<std::shared_ptr<TradingLocation>> *src_locations,
-		std::vector<std::shared_ptr<TradingLocation>> *dst_locations,
+		std::map<u64, std::vector<std::shared_ptr<TradingLocation>>> *src_locations,
+		std::map<u64, std::vector<std::shared_ptr<TradingLocation>>> *dst_locations,
 		Statement *route_stmt,
 		DB *db,
 		std::mutex *db_mutex
