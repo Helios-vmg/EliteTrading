@@ -1,62 +1,67 @@
 #include "ed_info.h"
 #include <sstream>
-#include <iomanip>
 #include <boost/filesystem.hpp>
 
-template <typename T>
-bool read_line(T &dst, std::istream &stream) {
-	std::string line;
-	std::getline(stream, line);
-	if (!stream)
-		return false;
-	std::stringstream(line) >> dst;
-	return true;
+#define EXPORT extern "C" __declspec(dllexport)
+
+EXPORT void *initialize_info(){
+	return new ED_Info;
 }
 
-void route_search(ED_Info &info){
-	while (true){
-		std::cout << "Enter your location:\n";
-		std::string sinput;
-		std::getline(std::cin, sinput);
-		auto options = info.location_search(sinput);
-		int index = 0;
-		std::cout << std::endl;
-		for (auto &opt : options){
-			std::cout << std::setw(2) << std::setfill(' ') << ++index << ". ";
-			if (opt.is_station)
-				std::cout << "Station \"" << opt.name << "\" in system \"" << info.stations[opt.id]->system->name << "\"\n";
-			else
-				std::cout << "System  \"" << opt.name << "\"\n";
-		}
-		std::cout << " 0. None of the above.\n"
-			"\n";
-		int iinput;
-		if (!read_line(iinput, std::cin))
-			return;
-		if (iinput <= 0 || iinput > index)
-			continue;
-		iinput--;
-		std::cout << "Max capacity: ";
-		unsigned max_capacity;
-		read_line(max_capacity, std::cin);
-		std::cout << "Initial funds: ";
-		u64 funds;
-		read_line(funds, std::cin);
-		std::cout << "OK. Searching for routes around " << options[iinput].name << "...\n";
-		if (options[iinput].is_station)
-			info.find_routes(info.stations[options[iinput].id], max_capacity, funds);
+EXPORT void destroy_info(void *p){
+	auto info = (ED_Info *)p;
+	delete info;
+}
+
+EXPORT int database_exists(){
+	return boost::filesystem::exists(database_path);
+}
+
+EXPORT void *import_data(ED_Info::progress_callback_f progress_callback){
+	auto ret = new ED_Info(ImportDataCommand(), progress_callback);
+	ret->save_to_db();
+	return ret;
+}
+
+EXPORT void recompute_all_routes(void *p, double max_stop_distance, u64 min_profit_per_unit){
+	auto info = (ED_Info *)p;
+	info->recompute_all_routes(max_stop_distance, min_profit_per_unit);
+}
+
+#if 0
+EXPORT char **get_suggestions(int *ret_size, void *p, const char *input){
+	auto info = (ED_Info *)p;
+	auto options = info->location_search(input);
+	std::vector<std::string> temp;
+	for (auto &opt : options){
+		std::stringstream stream;
+		if (opt.is_station)
+			stream << "Station \"" << opt.name << "\" in system \"" << info->stations[opt.id]->system->name << "\"";
 		else
-			info.find_routes(info.systems[options[iinput].id], max_capacity, funds);
+			stream << "System  \"" << opt.name << "\"";
+		temp.push_back(stream.str());
 	}
+	char **ret = new char *[temp.size()];
+	size_t i = 0;
+	for (auto &s : temp){
+		ret[i] = new char[s.size() + 1];
+		memcpy(ret[i], s.c_str(), s.size());
+		ret[i][s.size()] = 0;
+		i++;
+	}
+	*ret_size = (int)i;
+	return ret;
 }
 
-#define USER_INPUT_OPTION_IMPORT_DATA           1
-#define USER_INPUT_OPTION_RECOMPUTE_ROUTES      2
-#define USER_INPUT_OPTION_SET_MAX_STOP_DISTANCE 3
-#define USER_INPUT_OPTION_SET_MAX_HOP_DISTANCE  4
-#define USER_INPUT_OPTION_FIND_ROUTE            5
-#define USER_INPUT_MAX                          USER_INPUT_OPTION_FIND_ROUTE
+EXPORT void destroy_suggestions(void *p, int n){
+	char **array = (char **)p;
+	for (int i = 0; i < n; i++)
+		delete[] array[i];
+	delete[] array;
+}
+#endif
 
+#if 0
 int main(){
 	std::shared_ptr<ED_Info> info;
 	if (boost::filesystem::exists(database_path))
@@ -135,3 +140,4 @@ int main(){
 	}
 	return 0;
 }
+#endif

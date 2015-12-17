@@ -9,6 +9,7 @@
 #include <fstream>
 #include <sstream>
 #include <boost/filesystem.hpp>
+#include <iomanip>
 
 const char * const database_path = "data.sqlite";
 const char * const database_journal_path = "data.sqlite-journal";
@@ -84,16 +85,6 @@ public:
 		this->db_id = sqlite3_last_insert_rowid(db);
 	}
 };
-
-void ED_Info::read_config(DB &db){
-	auto stmt = db << "select value from config where key = ?;";
-	stmt << Reset() << "max_stop_distance";
-	if (stmt.step() == SQLITE_ROW)
-		stmt >> this->max_stop_distance;
-	stmt << Reset() << "max_hop_distance";
-	if (stmt.step() == SQLITE_ROW)
-		stmt >> this->max_hop_distance;
-}
 
 void ED_Info::read_strings(DB &db){
 	std::pair<std::vector<std::shared_ptr<BasicStringType>> *, const char *> string_tables[] = {
@@ -334,55 +325,41 @@ void ED_Info::fill_averages(){
 	}
 }
 
-const int primes[] = {  2,  3,  5,  7,
-					   11, 13, 17, 19,
-					   23, 29, 31, 37,
-					   41, 43, 47, 53 };
-
-void ED_Info::thread_func(
-		ED_Info *_this,
-		unsigned thread_id,
-		unsigned thread_count,
-		std::map<u64, std::vector<std::shared_ptr<TradingLocation>>> *src_locations,
-		std::map<u64, std::vector<std::shared_ptr<TradingLocation>>> *dst_locations,
-		Statement *route_stmt,
-		DB *db,
-		std::mutex *db_mutex
-){
+void ED_Info::thread_func(thread_func_params params){
 	std::vector<std::shared_ptr<SingleStopTradingRoute>> result;
 	size_t n = 0;
-	for (auto &kv : *src_locations){
-		auto it2 = dst_locations->find(kv.first);
-		if (it2 == dst_locations->end())
+	for (auto &kv : *params.src_locations){
+		auto it2 = params.dst_locations->find(kv.first);
+		if (it2 == params.dst_locations->end())
 			continue;
 		n += kv.second.size();
 	}
-	for (auto &kv : *src_locations){
-		auto it2 = dst_locations->find(kv.first);
-		if (it2 == dst_locations->end())
+	for (auto &kv : *params.src_locations){
+		auto it2 = params.dst_locations->find(kv.first);
+		if (it2 == params.dst_locations->end())
 			continue;
 		auto m = kv.second.size();
-		for (size_t i = thread_id; i < m; i += thread_count){
-			auto progress = _this->progress++;
+		for (size_t i = params.thread_id; i < m; i += params.thread_count){
+			auto progress = params._this->progress++;
 			if (progress % 1000 == 0){
-				std::lock_guard<std::mutex> lg(_this->cout_mutex);
-				std::cout << '\r' << progress * 100 / n << '%' << std::flush;
+				std::lock_guard<std::mutex> lg(params._this->cout_mutex);
+				params._this->progress_callback(generate_progress_string("Searching all possible routes... ", progress, n).c_str());
 			}
 			auto &src_location = kv.second[i];
 			for (auto &dst_location : it2->second){
 				assert(src_location->commodity->id == dst_location->commodity->id);
-				if (dst_location->price <= src_location->price || dst_location->price - src_location->price < 1000)
+				if (dst_location->price <= src_location->price || dst_location->price - src_location->price < params.min_profit_per_unit)
 					continue;
-				std::shared_ptr<SingleStopTradingRoute> route(new SingleStopTradingRoute(src_location.get(), dst_location.get(), _this->max_hop_distance));
-				if (_this->max_stop_distance >= 0 && route->approximate_distance > _this->max_stop_distance)
+				std::shared_ptr<SingleStopTradingRoute> route(new SingleStopTradingRoute(src_location.get(), dst_location.get()));
+				if (params.max_stop_distance >= 0 && route->approximate_distance > params.max_stop_distance)
 					continue;
 				result.push_back(route);
-				if (result.size() >= primes[thread_id] * 1000000){
+				if (result.size() >= 1000000){
 					{
-						std::lock_guard<std::mutex> lg(*db_mutex);
-						Transaction t(*db);
+						std::lock_guard<std::mutex> lg(*params.db_mutex);
+						Transaction t(*params.db);
 						for (auto &i : result)
-							i->save(*route_stmt, *db);
+							i->save(*params.route_stmt, *params.db);
 					}
 					result.clear();
 				}
@@ -391,20 +368,18 @@ void ED_Info::thread_func(
 	}
 	if (result.size()){
 		{
-			std::lock_guard<std::mutex> lg(*db_mutex);
-			Transaction t(*db);
+			std::lock_guard<std::mutex> lg(*params.db_mutex);
+			Transaction t(*params.db);
 			for (auto &i : result)
-				i->save(*route_stmt, *db);
+				i->save(*params.route_stmt, *params.db);
 		}
 		result.clear();
 	}
 }
 
-ED_Info::ED_Info(): max_stop_distance(-1), max_hop_distance(-1){
+ED_Info::ED_Info(){
 	{
 		DB db(database_path);
-		std::cout << "Reading config...\n";
-		this->read_config(db);
 		std::cout << "Reading strings...\n";
 		this->read_strings(db);
 		std::cout << "Reading systems...\n";
@@ -486,9 +461,11 @@ void ED_Info::compact_ids(){
 void ED_Info::generate_routing_table(){
 	const double max_hop_distance = 42;
 	size_t n = this->systems.size();
+	size_t total = n - 1;
 	for (size_t i = 0; i < n - 1; i++){
 		auto &first = this->systems[i];
 		assert(first);
+		this->progress_callback(generate_progress_string("Generating routing table... ", i, total).c_str());
 		for (size_t j = i + 1; j < n - 1; j++){
 			auto &second = this->systems[j];
 			assert(second);
@@ -501,17 +478,25 @@ void ED_Info::generate_routing_table(){
 	}
 }
 
-ED_Info::ED_Info(const ImportDataCommand &): max_stop_distance(-1), max_hop_distance(-1){
+ED_Info::ED_Info(const ImportDataCommand &, progress_callback_f callback):
+		progress_callback(callback){
+	this->progress_callback("Reading systems.json...");
 	this->read_systems_json();
+	this->progress_callback("Reading modules.json...");
 	this->read_modules_json();
+	this->progress_callback("Reading commodities.json...");
 	this->read_commodities_json();
+	this->progress_callback("Reading stations.json...");
 	this->read_stations_json();
+	this->progress_callback("Reading listings.csv...");
 	this->read_economy_csv();
+	this->progress_callback("Compacting IDs...");
 	this->compact_ids();
+	this->progress_callback("Generating routing table...");
 	this->generate_routing_table();
 }
 
-void ED_Info::recompute_all_routes(){
+void ED_Info::recompute_all_routes(double max_stop_distance, u64 min_profit_per_unit){
 	std::map<u64, std::vector<std::shared_ptr<TradingLocation>>> src_locations,
 		dst_locations;
 	for (auto &station : this->stations){
@@ -533,7 +518,7 @@ void ED_Info::recompute_all_routes(){
 		}
 	}
 
-	std::cout << "Searching all possible routes...\n";
+	this->progress_callback("Searching all possible routes...");
 	unsigned thread_count = std::thread::hardware_concurrency();
 	std::vector<std::shared_ptr<std::thread>> threads(thread_count);
 	size_t thread_id = 0;
@@ -543,35 +528,23 @@ void ED_Info::recompute_all_routes(){
 	auto insert_route = db << "insert into single_stop_routes (station_src, system_src, station_dst, commodity_id, approximate_distance, profit_per_unit) values (?, ?, ?, ?, ?, ?);";
 	std::mutex db_mutex;
 	for (auto &t : threads){
-		t.reset(new std::thread(thread_func, this, thread_id, thread_count, &src_locations, &dst_locations, &insert_route, &db, &db_mutex));
+		thread_func_params params = {
+			this,
+			thread_id,
+			thread_count,
+			&src_locations,
+			&dst_locations,
+			&insert_route,
+			&db,
+			&db_mutex,
+			max_stop_distance,
+			min_profit_per_unit
+		};
+		t.reset(new std::thread(thread_func, params));
 		thread_id++;
 	}
 	for (auto &t : threads)
 		t->join();
-	std::cout << std::endl;
-}
-
-void ED_Info::set_max_hop_distance(double d){
-	DB db(database_path);
-	this->max_hop_distance = std::min(d, this->max_stop_distance);
-	int count;
-	db << "select count(*) from config where key = 'max_hop_distance';" << Step() >> count;
-	if (!count)
-		db << "insert into config (key, value) values ('max_hop_distance', ?);" << this->max_hop_distance << Step();
-	else
-		db << "update config set value = ? where key = 'max_hop_distance';" << this->max_hop_distance << Step();
-}
-
-void ED_Info::set_max_stop_distance(double d){
-	DB db(database_path);
-	db.exec("delete from single_stop_routes;");
-	this->max_stop_distance = d;
-	int count;
-	db << "select count(*) from config where key = 'max_stop_distance';" << Step() >> count;
-	if (!count)
-		db << "insert into config (key, value) values ('max_stop_distance', ?);" << this->max_stop_distance << Step();
-	else
-		db << "update config set value = ? where key = 'max_stop_distance';" << this->max_stop_distance << Step();
 }
 
 size_t count_matches(const std::string &name, std::vector<std::pair<std::string, unsigned>> &search_terms){
@@ -676,7 +649,8 @@ void ED_Info::find_routes(StarSystem *around_system, unsigned max_capacity, u64 
 		for (auto &system : this->systems){
 			if (!system)
 				continue;
-			if (around_system->distance(system.get()) <= this->max_stop_distance)
+			//TODO: Replace 70 with a read from somewhere.
+			if (around_system->distance(system.get()) <= 70)
 				systems.push_back(system.get());
 		}
 
@@ -913,18 +887,18 @@ void ED_Info::save_to_db(){
 		db.exec((boost::format(create_string_table) % p.second).str().c_str());
 		
 	Transaction t(db);
-	std::cout << "Saving systems...\n";
+	this->progress_callback("Saving systems...");
 	this->save_systems(db);
-	std::cout << "Saving stations...\n";
+	this->progress_callback("Saving stations...");
 	this->save_stations(db);
-	std::cout << "Saving commodities...\n";
+	this->progress_callback("Saving commodities...");
 	this->save_commodities(db);
-	std::cout << "Saving strings...\n";
+	this->progress_callback("Saving strings...");
 	for (auto &p : string_tables)
 		this->save_string_table(db, *p.first, p.second);
-	std::cout << "Saving modules...\n";
+	this->progress_callback("Saving modules...");
 	this->save_modules(db);
-	std::cout << "Saving module groups...\n";
+	this->progress_callback("Saving module groups...");
 	this->save_module_groups(db);
 }
 
@@ -956,8 +930,12 @@ void ED_Info::save_systems(DB &db){
 			"updated_at"
 		") values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
 	auto new_navigation_route = db << "insert into navigation_routes (src, dst, distance) values (?, ?, ?);";
-	for (auto &system : this->systems)
+	auto total = this->systems.size();
+	decltype(total) i = 0;
+	for (auto &system : this->systems){
+		this->progress_callback(generate_progress_string("Saving systems... ", i++, total).c_str());
 		system->save(new_system, new_navigation_route);
+	}
 }
 
 void ED_Info::save_stations(DB &db){

@@ -15,3 +15,9 @@ std::shared_ptr<rapidjson::Document> parse_json(const char *path){
 	ret->Parse(&buffer[0]);
 	return ret;
 }
+
+void assign(std::string &dst, const json_value &obj, const char *name){
+	typedef check_json_type<std::string> check_t;
+	if (check_t::check(obj, name))
+		dst = check_t::get(obj, name);
+}

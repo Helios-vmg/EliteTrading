@@ -103,13 +103,16 @@ void assign(boost::optional<T> &dst, const json_value &obj, const char *name){
 		dst = check_t::get(obj, name);
 }
 
-inline void assign(std::string &dst, const json_value &obj, const char *name){
-	typedef check_json_type<std::string> check_t;
-	if (check_t::check(obj, name))
-		dst = check_t::get(obj, name);
-}
+void assign(std::string &dst, const json_value &obj, const char *name);
 
 #define SET_MEMBER(dst, src) assign(this->dst, src, #dst)
 #define SET_VARIABLE(dst, src) assign(dst, src, #dst)
 
 std::shared_ptr<rapidjson::Document> parse_json(const char *path);
+
+template <typename T1, typename T2>
+std::string generate_progress_string(const char *constant, const T1 &progress, const T2 &total){
+	std::stringstream stream;
+	stream << constant << std::setprecision(3) << double(progress) / total * 100 << '%';
+	return stream.str();
+}

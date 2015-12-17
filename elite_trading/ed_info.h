@@ -51,7 +51,9 @@ std::shared_ptr<T> get_basic_string_type(std::vector<std::shared_ptr<T>> &vector
 struct ImportDataCommand{};
 
 class ED_Info{
-	void read_config(DB &db);
+public:
+	typedef void (*progress_callback_f)(const char *);
+private:
 	void read_strings(DB &db);
 	void read_systems(DB &db);
 	void read_navigation_routes(DB &db);
@@ -79,19 +81,21 @@ class ED_Info{
 	void save_string_table(DB &db, const std::vector<std::shared_ptr<BasicStringType>> &vector, const char *table_name);
 	std::atomic<u64> progress;
 	std::mutex cout_mutex;
-	double max_stop_distance;
-	double max_hop_distance;
-	static void thread_func(
-		ED_Info *_this,
-		unsigned thread_id,
-		unsigned thread_count,
-		std::map<u64, std::vector<std::shared_ptr<TradingLocation>>> *src_locations,
-		std::map<u64, std::vector<std::shared_ptr<TradingLocation>>> *dst_locations,
-		Statement *route_stmt,
-		DB *db,
-		std::mutex *db_mutex
-	);
+	struct thread_func_params{
+		ED_Info *_this;
+		unsigned thread_id;
+		unsigned thread_count;
+		std::map<u64, std::vector<std::shared_ptr<TradingLocation>>> *src_locations;
+		std::map<u64, std::vector<std::shared_ptr<TradingLocation>>> *dst_locations;
+		Statement *route_stmt;
+		DB *db;
+		std::mutex *db_mutex;
+		double max_stop_distance;
+		u64 min_profit_per_unit;
+	};
+	static void thread_func(thread_func_params params);
 	std::map<std::string, std::shared_ptr<Commodity>> commodities_by_name;
+	progress_callback_f progress_callback;
 public:
 	std::vector<std::shared_ptr<StarSystem>> systems;
 	std::vector<std::shared_ptr<ModuleGroup>> module_groups;
@@ -124,16 +128,8 @@ public: \
 	DEFINE_SIMPLE_STRING_TYPE_THINGS(CommodityCategory, commodity_category, commodity_categories)
 
 	ED_Info();
-	ED_Info(const ImportDataCommand &);
-	void recompute_all_routes();
-	double get_max_hop_distance() const {
-		return this->max_hop_distance;
-	}
-	double get_max_stop_distance() const {
-		return this->max_stop_distance;
-	}
-	void set_max_hop_distance(double);
-	void set_max_stop_distance(double);
+	ED_Info(const ImportDataCommand &, progress_callback_f);
+	void recompute_all_routes(double max_stop_distance, u64 min_profit_per_unit);
 	std::vector<LocationOption> location_search(const std::string &cs);
 	void find_routes(const std::shared_ptr<Station> &around_station, unsigned max_capacity, u64 initial_funds){
 		this->find_routes(around_station->system, max_capacity, initial_funds);
