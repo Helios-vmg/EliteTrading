@@ -354,7 +354,7 @@ void ED_Info::thread_func(thread_func_params params){
 				if (params.max_stop_distance >= 0 && route->approximate_distance > params.max_stop_distance)
 					continue;
 				result.push_back(route);
-				if (result.size() >= 1000000){
+				if (result.size() >= 10000000){
 					{
 						std::lock_guard<std::mutex> lg(*params.db_mutex);
 						Transaction t(*params.db);

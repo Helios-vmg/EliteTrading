@@ -28,7 +28,6 @@ EXPORT void recompute_all_routes(void *p, double max_stop_distance, u64 min_prof
 	info->recompute_all_routes(max_stop_distance, min_profit_per_unit);
 }
 
-#if 0
 EXPORT char **get_suggestions(int *ret_size, void *p, const char *input){
 	auto info = (ED_Info *)p;
 	auto options = info->location_search(input);
@@ -59,7 +58,6 @@ EXPORT void destroy_suggestions(void *p, int n){
 		delete[] array[i];
 	delete[] array;
 }
-#endif
 
 #if 0
 int main(){

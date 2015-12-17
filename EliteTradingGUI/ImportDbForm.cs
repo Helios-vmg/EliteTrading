@@ -16,20 +16,19 @@ namespace EliteTradingGUI
         {
             InitializeComponent();
             var tooltip = new ToolTip();
-            tooltip.SetToolTip(maxRouteStopDistanceInput, "This value is used " + 
-                "to generate trading route segments. Route segments between " +
-                "stations farther than this value will be ignored. If it's " +
-                "later desired to search for routes with longer segments, the " +
-                "segments will have to be recomputed. If unsure, leave it as " +
-                "it is.");
+            tooltip.SetToolTip(maxRouteStopDistanceInput, 
+@"This value is used to generate trading route segments. Route segments between
+stations farther than this value will be ignored. If it's later desired to
+search for routes with longer segments, the segments will have to be recomputed.
+If unsure, leave it as it is.");
             tooltip = new ToolTip();
-            tooltip.SetToolTip(minProfitPerUnitInput, "This value is used " + 
-                "to generate trading route segments. Route segments that " +
-                "involve trades less profitable that this value per unit sold " +
-                "will be ignored. It's recommended to leave the default value. " +
-                "Setting a very low minimum may result in a very large database " +
-                "and diminished performance during route searches.");
-            
+            tooltip.SetToolTip(minProfitPerUnitInput, 
+@"This value is used to generate trading route segments. Route segments that
+involve trades less profitable that this value per unit sold will be ignored.
+It's recommended to leave the default value. Setting a very low minimum may
+result in a very large database and diminished performance during route
+searches.");
+            StartPosition = FormStartPosition.CenterParent;
         }
 
         private void OkButton_Click(object sender, EventArgs e)
@@ -46,6 +45,7 @@ namespace EliteTradingGUI
                     MessageBoxIcon.Error);
                 return;
             }
+            Accepted = true;
             Close();
         }
 
@@ -60,6 +60,14 @@ namespace EliteTradingGUI
         public ulong MinProfit
         {
             get { return _minProfit; }
+        }
+
+        public bool Accepted = false;
+
+        private void CancelButton_Click(object sender, EventArgs e)
+        {
+            Accepted = false;
+            Close();
         }
     }
 }
