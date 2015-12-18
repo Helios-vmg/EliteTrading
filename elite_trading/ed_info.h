@@ -48,6 +48,11 @@ std::shared_ptr<T> get_basic_string_type(std::vector<std::shared_ptr<T>> &vector
 	return ret;
 }
 
+enum class OptimizationType{
+	OptimizeEfficiency = 1,
+	OptimizeProfit = 2,
+};
+
 struct ImportDataCommand{};
 
 class ED_Info{
@@ -94,6 +99,7 @@ private:
 		u64 min_profit_per_unit;
 	};
 	static void thread_func(thread_func_params params);
+	std::vector<StarSystem *> find_route_candidate_systems(const StarSystem *around_system);
 	std::map<std::string, std::shared_ptr<Commodity>> commodities_by_name;
 	progress_callback_f progress_callback;
 public:
@@ -127,17 +133,61 @@ public: \
 	DEFINE_SIMPLE_STRING_TYPE_THINGS(ModuleCategory, module_category, module_categories)
 	DEFINE_SIMPLE_STRING_TYPE_THINGS(CommodityCategory, commodity_category, commodity_categories)
 
-	ED_Info();
+	ED_Info(progress_callback_f);
 	ED_Info(const ImportDataCommand &, progress_callback_f);
 	void recompute_all_routes(double max_stop_distance, u64 min_profit_per_unit);
 	std::vector<LocationOption> location_search(const std::string &cs);
-	void find_routes(const std::shared_ptr<Station> &around_station, unsigned max_capacity, u64 initial_funds){
-		this->find_routes(around_station->system, max_capacity, initial_funds);
+	std::vector<RouteNodeInterop *> find_routes(
+			const std::shared_ptr<Station> &around_station,
+			unsigned max_capacity,
+			u64 initial_funds,
+			unsigned required_stops,
+			OptimizationType optimization,
+			u64 minimum_profit_per_unit,
+			bool require_large_pad,
+			bool avoid_loops){
+		return this->find_routes(
+			around_station.get(),
+			max_capacity,
+			initial_funds,
+			required_stops,
+			optimization,
+			minimum_profit_per_unit,
+			require_large_pad,
+			avoid_loops
+		);
 	}
-	void find_routes(const std::shared_ptr<StarSystem> &around_system, unsigned max_capacity, u64 initial_funds){
-		this->find_routes(around_system.get(), max_capacity, initial_funds);
+	std::vector<RouteNodeInterop *> find_routes(
+			const std::shared_ptr<StarSystem> &around_system,
+			unsigned max_capacity,
+			u64 initial_funds,
+			unsigned required_stops,
+			OptimizationType optimization,
+			u64 minimum_profit_per_unit,
+			bool require_large_pad,
+			bool avoid_loops){
+		auto temp_station = Station::create_virtual_station(around_system.get());
+		return this->find_routes(
+			temp_station.get(),
+			max_capacity,
+			initial_funds,
+			required_stops,
+			optimization,
+			minimum_profit_per_unit,
+			require_large_pad,
+			avoid_loops
+		);
 	}
-	void find_routes(StarSystem *around_system, unsigned max_capacity, u64 initial_funds);
+	std::vector<RouteNodeInterop *> find_routes(
+		Station *around_station,
+		unsigned max_capacity,
+		u64 initial_funds,
+		unsigned required_stops,
+		OptimizationType optimization,
+		u64 minimum_profit_per_unit,
+		bool require_large_pad,
+		bool avoid_loops
+	);
 	void save_to_db();
 	std::shared_ptr<Commodity> ED_Info::get_commodity(const std::string &name);
 };

@@ -377,33 +377,33 @@ void ED_Info::thread_func(thread_func_params params){
 	}
 }
 
-ED_Info::ED_Info(){
+ED_Info::ED_Info(progress_callback_f callback): progress_callback(callback){
 	{
 		DB db(database_path);
-		std::cout << "Reading strings...\n";
+		this->progress_callback("Reading strings...");
 		this->read_strings(db);
-		std::cout << "Reading systems...\n";
+		this->progress_callback("Reading systems...");
 		this->read_systems(db);
-		std::cout << "Reading navigation routes...\n";
+		this->progress_callback("Reading navigation routes...");
 		this->read_navigation_routes(db);
-		std::cout << "Reading module groups...\n";
+		this->progress_callback("Reading module groups...");
 		this->read_module_groups(db);
-		std::cout << "Reading modules...\n";
+		this->progress_callback("Reading modules...");
 		this->read_modules(db);
-		std::cout << "Reading ships...\n";
+		this->progress_callback("Reading ships...");
 		this->read_ships(db);
-		std::cout << "Reading economies...\n";
+		this->progress_callback("Reading economies...");
 		this->read_economies(db);
-		std::cout << "Reading stations...\n";
+		this->progress_callback("Reading stations...");
 		this->read_stations(db);
-		std::cout << "Reading commodities...\n";
+		this->progress_callback("Reading commodities...");
 		this->read_commodities(db);
-		std::cout << "Reading station extras...\n";
+		this->progress_callback("Reading station extras...");
 		this->read_station_extras(db);
-		std::cout << "Reading station economies...\n";
+		this->progress_callback("Reading station economies...");
 		this->read_station_economies(db);
 	}
-	std::cout << "Processing averages...\n";
+	this->progress_callback("Processing averages...");
 	this->fill_averages();
 }
 
@@ -624,69 +624,90 @@ std::vector<LocationOption> ED_Info::location_search(const std::string &location
 			term.second = 0;
 	}
 	std::sort(ret.begin(), ret.end(), [](const LocationOption &a, const LocationOption &b){ return a.similarity > b.similarity; });
-	if (ret.size() > 10)
-		ret.resize(10);
 	return ret;
 }
 
-bool segments_by_profit(const std::shared_ptr<RouteSegment> &a, const std::shared_ptr<RouteSegment> &b){
-	return a->calculate_profit() > b->calculate_profit();
+std::vector<StarSystem *> ED_Info::find_route_candidate_systems(const StarSystem *around_system) {
+	std::vector<StarSystem *> ret;
+	for (auto &system : this->systems){
+		if (!system)
+			continue;
+		//TODO: Replace 70 with a read from somewhere.
+		if (around_system->distance(system.get()) <= 70)
+			ret.push_back(system.get());
+	}
+	return ret;
 }
 
-bool segments_by_fitness(const std::shared_ptr<RouteSegment> &a, const std::shared_ptr<RouteSegment> &b){
-	return a->calculate_fitness() > b->calculate_fitness();
+bool segments_by_profit(const std::shared_ptr<RouteNode> &a, const std::shared_ptr<RouteNode> &b){
+	return a->get_profit_fitness() > b->get_profit_fitness();
 }
 
-void ED_Info::find_routes(StarSystem *around_system, unsigned max_capacity, u64 initial_funds){
-	//const unsigned minimum_profit = 425; // trim 90%
-	const unsigned minimum_profit = 1000; // trim 99.43%
-	//const unsigned minimum_profit = 2000; // trim 99.77%
+bool segments_by_efficiency(const std::shared_ptr<RouteNode> &a, const std::shared_ptr<RouteNode> &b){
+	return a->get_efficiency_fitness() > b->get_efficiency_fitness();
+}
 
-	std::vector<std::shared_ptr<RouteSegment>> routes;
+typedef bool (*route_segment_sort_f)(const std::shared_ptr<RouteNode> &, const std::shared_ptr<RouteNode> &);
+
+std::vector<RouteNodeInterop *> ED_Info::find_routes(
+		Station *around_station,
+		unsigned max_capacity,
+		u64 initial_funds,
+		unsigned required_stops,
+		OptimizationType optimization,
+		u64 minimum_profit_per_unit,
+		bool require_large_pad,
+		bool avoid_loops){
+	std::vector<std::shared_ptr<RouteNode>> routes;
+	RouteConstraints constraints(max_capacity, initial_funds, require_large_pad, avoid_loops);
+	std::shared_ptr<RouteNode> first_node(new RouteNode(around_station, constraints));
+	auto around_system = around_station->system;
 	DB db(database_path);
 	{
-		std::vector<StarSystem *> systems;
-		for (auto &system : this->systems){
-			if (!system)
-				continue;
-			//TODO: Replace 70 with a read from somewhere.
-			if (around_system->distance(system.get()) <= 70)
-				systems.push_back(system.get());
-		}
+		auto candidate_systems = this->find_route_candidate_systems(around_system);
 
-		auto routes_from_system = db << "select id, station_src, station_dst, commodity_id, approximate_distance, profit_per_unit from single_stop_routes where system_src = ? and profit_per_unit >= ?;";
-		for (auto system : systems){
-			routes_from_system << Reset() << system->id << minimum_profit;
+		auto routes_from_system = db << "select station_src, station_dst, commodity_id, approximate_distance, profit_per_unit from single_stop_routes where system_src = ? and profit_per_unit >= ?;";
+		for (auto system : candidate_systems){
+			routes_from_system << Reset() << system->id << minimum_profit_per_unit;
 			while (routes_from_system.step() == SQLITE_ROW){
-				u64 id, src, dst, commodity_id, profit_per_unit;
+				u64 src, dst, commodity_id, profit_per_unit;
 				double approximate_distance;
-				routes_from_system >> id >> src >> dst >> commodity_id >> approximate_distance >> profit_per_unit;
-				std::shared_ptr<RouteSegment> segment(new RouteSegment(
-					id,
-					stations[src].get(),
+				routes_from_system >> src >> dst >> commodity_id >> approximate_distance >> profit_per_unit;
+				std::shared_ptr<RouteNode> first(new RouteNode(stations[src].get(), constraints));
+				first->previous_segment = first_node;
+				std::shared_ptr<RouteNode> second(new RouteNode(
 					stations[dst].get(),
 					commodities[commodity_id].get(),
 					approximate_distance,
 					profit_per_unit,
-					max_capacity,
-					initial_funds
+					constraints
 				));
-				routes.push_back(segment);
+				second->previous_segment = first;
+				routes.push_back(first);
 			}
 		}
 	}
 
-	auto routes_from_station = db << "select id, station_src, station_dst, commodity_id, approximate_distance, profit_per_unit from single_stop_routes where station_src = ? and profit_per_unit >= ?;";
-	int loop = 6;
+	auto routes_from_station = db << "select station_dst, commodity_id, approximate_distance, profit_per_unit from single_stop_routes where station_src = ? and profit_per_unit >= ?;";
+	unsigned loop = required_stops;
+	route_segment_sort_f sort;
+	switch (optimization) {
+		case OptimizationType::OptimizeEfficiency:
+			sort = segments_by_efficiency;
+			break;
+		case OptimizationType::OptimizeProfit:
+			sort = segments_by_profit;
+			break;
+		default:
+			throw std::exception("Invalid enum value.");
+			break;
+	}
 	const size_t max_routes_per_loop = 10000;
+	const size_t absolute_max_routes = 1000000;
 	while (true){
-		std::cout << "Found " << routes.size() << " routes.\n";
-		//if (routes.size() > 10000){
-		//	std::sort(routes.begin(), routes.end(), segments_by_profit);
-		//	routes.resize(routes.size() / 5);
-		//}
+		this->progress_callback(generate_progress_string("Searching for routes...", required_stops - loop, required_stops).c_str());
 		if (!loop || routes.size() > max_routes_per_loop){
-			std::sort(routes.begin(), routes.end(), segments_by_fitness);
+			std::sort(routes.begin(), routes.end(), sort);
 			if (routes.size() > max_routes_per_loop)
 				routes.resize(max_routes_per_loop);
 			if (!loop)
@@ -694,36 +715,39 @@ void ED_Info::find_routes(StarSystem *around_system, unsigned max_capacity, u64 
 		}
 		--loop;
 
-		std::map<u64, std::vector<std::shared_ptr<RouteSegment>>> routes_by_station;
+		std::map<u64, std::vector<std::shared_ptr<RouteNode>>> routes_by_station;
 		for (auto &route : routes)
-			routes_by_station[route->station_dst->id].clear();
+			routes_by_station[route->station->id].clear();
 		
-		for (auto &station : routes_by_station){
-			routes_from_station << Reset() << station.first << minimum_profit;
+		for (auto &station_route_pair : routes_by_station){
+			routes_from_station << Reset() << station_route_pair.first << minimum_profit_per_unit;
 			while (routes_from_station.step() == SQLITE_ROW){
-				u64 id, src, dst, commodity_id, profit_per_unit;
+				u64 dst, commodity_id, profit_per_unit;
 				double approximate_distance;
-				routes_from_station >> id >> src >> dst >> commodity_id >> approximate_distance >> profit_per_unit;
-				std::shared_ptr<RouteSegment> segment(new RouteSegment(
-					id,
-					stations[src].get(),
+				routes_from_station >> dst >> commodity_id >> approximate_distance >> profit_per_unit;
+				std::shared_ptr<RouteNode> segment(new RouteNode(
 					stations[dst].get(),
 					commodities[commodity_id].get(),
 					approximate_distance,
 					profit_per_unit,
-					max_capacity
+					constraints
 				));
-				station.second.push_back(segment);
+				station_route_pair.second.push_back(segment);
 			}
 		}
-		std::vector<std::shared_ptr<RouteSegment>> new_routes;
+		std::vector<std::shared_ptr<RouteNode>> new_routes;
 		for (auto &route : routes){
-			const auto &segments = routes_by_station[route->station_dst->id];
+			const auto &segments = routes_by_station[route->station->id];
 			for (auto &segment : segments){
-				std::shared_ptr<RouteSegment> new_segment(new RouteSegment(*segment));
+				std::shared_ptr<RouteNode> new_segment(new RouteNode(*segment));
 				new_segment->previous_segment = route;
-				new_segment->calculate_funds();
+				new_segment->get_funds();
 				new_routes.push_back(new_segment);
+			}
+			if (new_routes.size() > absolute_max_routes){
+				std::sort(new_routes.begin(), new_routes.end(), sort);
+				if (new_routes.size() > max_routes_per_loop)
+					new_routes.resize(max_routes_per_loop);
 			}
 		}
 		if (!new_routes.size())
@@ -731,16 +755,13 @@ void ED_Info::find_routes(StarSystem *around_system, unsigned max_capacity, u64 
 		routes = std::move(new_routes);
 	}
 
-	if (routes.size() > 10)
-		routes.resize(10);
-	else if (!routes.size())
-		return;
+	std::vector<RouteNodeInterop *> ret;
+	ret.reserve(routes.size());
+	for (auto &route : routes)
+		ret.push_back(route->to_interop());
+	return ret;
 
-	std::vector<std::shared_ptr<RouteSegment>> segments;
-	for (auto current = routes.front(); current; current = current->previous_segment)
-		segments.push_back(current);
-	std::reverse(segments.begin(), segments.end());
-
+#if 0
 	{
 		auto &segment = segments[0];
 		std::cout
@@ -765,6 +786,7 @@ void ED_Info::find_routes(StarSystem *around_system, unsigned max_capacity, u64 
 			   "    Sell all cargo. Profit:       " << segment->segment_profit() << "\n"
 			   "                    Total profit: " << segment->calculate_profit() << std::endl;
 	}
+#endif
 }
 
 void ED_Info::save_to_db(){

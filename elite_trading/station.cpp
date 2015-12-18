@@ -329,3 +329,14 @@ void Station::save(
 			<< Step();
 	}
 }
+
+std::shared_ptr<Station> Station::create_virtual_station(StarSystem *system){
+	std::shared_ptr<Station> ret(new Station);
+	ret->id = std::numeric_limits<decltype(ret->id)>::max();
+	ret->system_id = system->id;
+	ret->max_landing_pad_size = std::numeric_limits<decltype(ret->max_landing_pad_size)>::max();
+	ret->distance_to_star = 0;
+	ret->updated_at = 0;
+	ret->system = system;
+	return ret;
+}

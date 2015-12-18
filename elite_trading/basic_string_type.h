@@ -3,6 +3,9 @@
 #include <string>
 #include <cstdint>
 
+typedef std::int32_t i32;
+typedef std::uint32_t u32;
+typedef std::int64_t i64;
 typedef std::uint64_t u64;
 
 class BasicStringType{

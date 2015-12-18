@@ -8,9 +8,16 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{4C8E762C-B7AE-4BEB-9805-08C956BF7074}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EliteTradingGUI", "EliteTradingGUI\EliteTradingGUI.csproj", "{2EEE249F-43E6-4050-AD21-670EC01D8BCD}"
+	ProjectSection(ProjectDependencies) = postProject
+		{862184E6-77FA-4972-BA14-00D0DFFEEA3B} = {862184E6-77FA-4972-BA14-00D0DFFEEA3B}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		CSharpDebug|Any CPU = CSharpDebug|Any CPU
+		CSharpDebug|Mixed Platforms = CSharpDebug|Mixed Platforms
+		CSharpDebug|Win32 = CSharpDebug|Win32
+		CSharpDebug|x64 = CSharpDebug|x64
 		Debug|Any CPU = Debug|Any CPU
 		Debug|Mixed Platforms = Debug|Mixed Platforms
 		Debug|Win32 = Debug|Win32
@@ -21,6 +28,13 @@ Global
 		Release|x64 = Release|x64
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{862184E6-77FA-4972-BA14-00D0DFFEEA3B}.CSharpDebug|Any CPU.ActiveCfg = CSharpDebug|Win32
+		{862184E6-77FA-4972-BA14-00D0DFFEEA3B}.CSharpDebug|Mixed Platforms.ActiveCfg = CSharpDebug|Win32
+		{862184E6-77FA-4972-BA14-00D0DFFEEA3B}.CSharpDebug|Mixed Platforms.Build.0 = CSharpDebug|Win32
+		{862184E6-77FA-4972-BA14-00D0DFFEEA3B}.CSharpDebug|Win32.ActiveCfg = CSharpDebug|Win32
+		{862184E6-77FA-4972-BA14-00D0DFFEEA3B}.CSharpDebug|Win32.Build.0 = CSharpDebug|Win32
+		{862184E6-77FA-4972-BA14-00D0DFFEEA3B}.CSharpDebug|x64.ActiveCfg = Release|x64
+		{862184E6-77FA-4972-BA14-00D0DFFEEA3B}.CSharpDebug|x64.Build.0 = Release|x64
 		{862184E6-77FA-4972-BA14-00D0DFFEEA3B}.Debug|Any CPU.ActiveCfg = Debug|x64
 		{862184E6-77FA-4972-BA14-00D0DFFEEA3B}.Debug|Mixed Platforms.ActiveCfg = Debug|x64
 		{862184E6-77FA-4972-BA14-00D0DFFEEA3B}.Debug|Mixed Platforms.Build.0 = Debug|x64
@@ -35,6 +49,13 @@ Global
 		{862184E6-77FA-4972-BA14-00D0DFFEEA3B}.Release|Win32.Build.0 = Release|Win32
 		{862184E6-77FA-4972-BA14-00D0DFFEEA3B}.Release|x64.ActiveCfg = Release|x64
 		{862184E6-77FA-4972-BA14-00D0DFFEEA3B}.Release|x64.Build.0 = Release|x64
+		{2EEE249F-43E6-4050-AD21-670EC01D8BCD}.CSharpDebug|Any CPU.ActiveCfg = CSharpDebug|Any CPU
+		{2EEE249F-43E6-4050-AD21-670EC01D8BCD}.CSharpDebug|Any CPU.Build.0 = CSharpDebug|Any CPU
+		{2EEE249F-43E6-4050-AD21-670EC01D8BCD}.CSharpDebug|Mixed Platforms.ActiveCfg = CSharpDebug|Any CPU
+		{2EEE249F-43E6-4050-AD21-670EC01D8BCD}.CSharpDebug|Mixed Platforms.Build.0 = CSharpDebug|Any CPU
+		{2EEE249F-43E6-4050-AD21-670EC01D8BCD}.CSharpDebug|Win32.ActiveCfg = CSharpDebug|Any CPU
+		{2EEE249F-43E6-4050-AD21-670EC01D8BCD}.CSharpDebug|x64.ActiveCfg = Debug|x64
+		{2EEE249F-43E6-4050-AD21-670EC01D8BCD}.CSharpDebug|x64.Build.0 = Debug|x64
 		{2EEE249F-43E6-4050-AD21-670EC01D8BCD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{2EEE249F-43E6-4050-AD21-670EC01D8BCD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2EEE249F-43E6-4050-AD21-670EC01D8BCD}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU

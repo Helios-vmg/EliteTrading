@@ -46,6 +46,7 @@ public:
 };
 
 class Station{
+	Station(){}
 public:
 	u64 id;
 	std::string name;
@@ -84,6 +85,7 @@ public:
 	std::vector<StarSystem*> find_fastest_route(Station *station, double max_distance = -1){
 		return this->system->find_fastest_route(station->system, max_distance);
 	}
+	static std::shared_ptr<Station> create_virtual_station(StarSystem *system);
 
 	u64 find_sell_price(Commodity *commodity);
 	void save(

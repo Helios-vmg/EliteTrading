@@ -8,6 +8,12 @@ using System.Xml.Serialization;
 
 namespace EliteTradingGUI
 {
+    public enum OptimizationType
+    {
+        OptimizeEfficiency = 1,
+        OptimizeProfit = 2,
+    }
+
     [Serializable]
     public class Config
     {
@@ -15,6 +21,9 @@ namespace EliteTradingGUI
         public bool AvoidLoops = true;
         public int CargoCapacity = -1;
         public long AvailableCredits = -1;
+        public uint RequiredStops = 6;
+        public OptimizationType Optimization = OptimizationType.OptimizeEfficiency;
+        public ulong MinimumProfitPerUnit = 1000;
 
         private static string GetLocation()
         {

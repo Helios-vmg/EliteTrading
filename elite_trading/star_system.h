@@ -41,10 +41,10 @@ public:
 	}
 
 	std::vector<StarSystem*> find_fastest_route(StarSystem *system, double max_distance = -1);
-	double distance(const std::shared_ptr<StarSystem> &dst){
+	double distance(const std::shared_ptr<StarSystem> &dst) const{
 		return this->distance(dst.get());
 	}
-	double distance(StarSystem *dst) {
+	double distance(StarSystem *dst) const{
 		double a = this->x - dst->x;
 		double b = this->y - dst->y;
 		double c = this->z - dst->z;

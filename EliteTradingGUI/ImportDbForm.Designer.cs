@@ -37,7 +37,7 @@
             this.tableLayoutPanel2 = new System.Windows.Forms.TableLayoutPanel();
             this.tableLayoutPanel3 = new System.Windows.Forms.TableLayoutPanel();
             this.OkButton = new System.Windows.Forms.Button();
-            this.CancelButton = new System.Windows.Forms.Button();
+            this.NewCancelButton = new System.Windows.Forms.Button();
             this.tableLayoutPanel1.SuspendLayout();
             this.tableLayoutPanel2.SuspendLayout();
             this.tableLayoutPanel3.SuspendLayout();
@@ -143,7 +143,7 @@
             this.tableLayoutPanel3.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle());
             this.tableLayoutPanel3.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle());
             this.tableLayoutPanel3.Controls.Add(this.OkButton, 1, 0);
-            this.tableLayoutPanel3.Controls.Add(this.CancelButton, 2, 0);
+            this.tableLayoutPanel3.Controls.Add(this.NewCancelButton, 2, 0);
             this.tableLayoutPanel3.Dock = System.Windows.Forms.DockStyle.Fill;
             this.tableLayoutPanel3.Location = new System.Drawing.Point(3, 120);
             this.tableLayoutPanel3.Name = "tableLayoutPanel3";
@@ -166,15 +166,15 @@
             // 
             // CancelButton
             // 
-            this.CancelButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.CancelButton.Location = new System.Drawing.Point(359, 3);
-            this.CancelButton.Margin = new System.Windows.Forms.Padding(3, 3, 10, 10);
-            this.CancelButton.Name = "CancelButton";
-            this.CancelButton.Size = new System.Drawing.Size(75, 23);
-            this.CancelButton.TabIndex = 1;
-            this.CancelButton.Text = "Cancel";
-            this.CancelButton.UseVisualStyleBackColor = true;
-            this.CancelButton.Click += new System.EventHandler(this.CancelButton_Click);
+            this.NewCancelButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.NewCancelButton.Location = new System.Drawing.Point(359, 3);
+            this.NewCancelButton.Margin = new System.Windows.Forms.Padding(3, 3, 10, 10);
+            this.NewCancelButton.Name = "NewCancelButton";
+            this.NewCancelButton.Size = new System.Drawing.Size(75, 23);
+            this.NewCancelButton.TabIndex = 1;
+            this.NewCancelButton.Text = "Cancel";
+            this.NewCancelButton.UseVisualStyleBackColor = true;
+            this.NewCancelButton.Click += new System.EventHandler(this.CancelButton_Click);
             // 
             // ImportDbForm
             // 
@@ -210,6 +210,6 @@
         private System.Windows.Forms.TableLayoutPanel tableLayoutPanel2;
         private System.Windows.Forms.TableLayoutPanel tableLayoutPanel3;
         private System.Windows.Forms.Button OkButton;
-        private System.Windows.Forms.Button CancelButton;
+        private System.Windows.Forms.Button NewCancelButton;
     }
 }
