@@ -30,13 +30,53 @@ inline double zero_div(double a, double b){
 	return a / b;
 }
 
+template <typename T>
+class Maybe{
+	bool initialized;
+	T data;
+public:
+	Maybe(): initialized(false), data(){}
+	Maybe(const Maybe<T> &b){
+		*this = b;
+	}
+	Maybe(const T &b){
+		*this = b;
+	}
+	const Maybe<T> &operator=(const Maybe<T> &b){
+		this->initialized = b.initialized;
+		this->data = b.data;
+		return *this;
+	}
+	const Maybe<T> &operator=(const T &b){
+		this->initialized = true;
+		this->data = b;
+		return *this;
+	}
+	const T &value() const{
+		if (!this->initialized)
+			throw std::exception("!Maybe<T>::is_initialized()");
+		return this->data;
+	}
+	const T &value_or(const T &v) const{
+		if (!this->initialized)
+			return v;
+		return this->data;
+	}
+	bool is_initialized() const{
+		return this->initialized;
+	}
+};
+
+//#define OPTIONAL Maybe
+#define OPTIONAL boost::optional
+
 class RouteNode{
-	boost::optional<double> memo_efficiency,
+	OPTIONAL<double> memo_efficiency,
 		memo_cost,
 		memo_efficiency_fitness;
-	boost::optional<u64> memo_profit, memo_expenditure, memo_profit_fitness;
-	boost::optional<unsigned> memo_quantity;
-	boost::optional<bool> memo_constraints;
+	OPTIONAL<u64> memo_profit, memo_expenditure, memo_profit_fitness;
+	OPTIONAL<unsigned> memo_quantity;
+	OPTIONAL<bool> memo_constraints;
 	double get_cost(bool ignore_src, bool ignore_dst) const;
 	bool meets_constraints(std::set<u64> &);
 public:

@@ -116,7 +116,7 @@ EXPORT void *search_nearby_routes(
 
 	auto ret = new RouteNodeInterop *[routes.size()];
 	memcpy(ret, &routes[0], routes.size() * sizeof(routes[0]));
-	*result_size = routes.size();
+	*result_size = (i32)routes.size();
 	return ret;
 }
 

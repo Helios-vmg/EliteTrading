@@ -530,7 +530,7 @@ void ED_Info::recompute_all_routes(double max_stop_distance, u64 min_profit_per_
 	for (auto &t : threads){
 		thread_func_params params = {
 			this,
-			thread_id,
+			(unsigned)thread_id,
 			thread_count,
 			&src_locations,
 			&dst_locations,
@@ -683,7 +683,7 @@ std::vector<RouteNodeInterop *> ED_Info::find_routes(
 					constraints
 				));
 				second->previous_segment = first;
-				routes.push_back(first);
+				routes.push_back(second);
 			}
 		}
 	}
@@ -705,7 +705,7 @@ std::vector<RouteNodeInterop *> ED_Info::find_routes(
 	const size_t max_routes_per_loop = 10000;
 	const size_t absolute_max_routes = 1000000;
 	while (true){
-		this->progress_callback(generate_progress_string("Searching for routes...", required_stops - loop, required_stops).c_str());
+		this->progress_callback(generate_progress_string("Searching for routes... ", required_stops - loop, required_stops).c_str());
 		if (!loop || routes.size() > max_routes_per_loop){
 			std::sort(routes.begin(), routes.end(), sort);
 			if (routes.size() > max_routes_per_loop)
@@ -744,11 +744,11 @@ std::vector<RouteNodeInterop *> ED_Info::find_routes(
 				new_segment->get_funds();
 				new_routes.push_back(new_segment);
 			}
-			if (new_routes.size() > absolute_max_routes){
-				std::sort(new_routes.begin(), new_routes.end(), sort);
-				if (new_routes.size() > max_routes_per_loop)
-					new_routes.resize(max_routes_per_loop);
-			}
+			//if (new_routes.size() > absolute_max_routes){
+			//	std::sort(new_routes.begin(), new_routes.end(), sort);
+			//	if (new_routes.size() > max_routes_per_loop)
+			//		new_routes.resize(max_routes_per_loop);
+			//}
 		}
 		if (!new_routes.size())
 			break;

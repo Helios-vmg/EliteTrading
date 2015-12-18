@@ -22,7 +22,6 @@ double RouteNode::get_efficiency_fitness(){
 			this->memo_efficiency_fitness = 0;
 		else{
 			std::set<u64> visited;
-			visited.insert(this->station->id);
 			if (!this->meets_constraints(visited))
 				this->memo_efficiency_fitness = 0;
 			else
