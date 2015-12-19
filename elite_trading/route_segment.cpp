@@ -37,7 +37,6 @@ u64 RouteNode::get_profit_fitness() {
 			this->memo_profit_fitness = 0;
 		else{
 			std::set<u64> visited;
-			visited.insert(this->station->id);
 			if (!this->meets_constraints(visited))
 				this->memo_profit_fitness = 0;
 			else
