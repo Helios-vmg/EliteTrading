@@ -1,17 +1,15 @@
 #include "route_segment.h"
 
 bool RouteNode::meets_constraints(std::set<u64> &visited){
-	if (!this->memo_constraints.is_initialized()){
-		if (this->constraints->require_large_pad && this->station->max_landing_pad_size < 1)
-			this->memo_constraints = false;
-		else if (this->constraints->avoid_loops && visited.find(this->station->id) != visited.end())
-			this->memo_constraints = false;
-		else if (!this->previous_node)
-			this->memo_constraints = true;
-		else{
-			visited.insert(this->station->id);
-			this->memo_constraints = this->previous_node->meets_constraints(visited);
-		}
+	if (this->constraints->require_large_pad && this->station->max_landing_pad_size < 1)
+		this->memo_constraints = false;
+	else if (this->constraints->avoid_loops && visited.find(this->station->id) != visited.end())
+		this->memo_constraints = false;
+	else if (!this->previous_node)
+		this->memo_constraints = true;
+	else{
+		visited.insert(this->station->id);
+		this->memo_constraints = this->previous_node->meets_constraints(visited);
 	}
 	return this->memo_constraints.value();
 }

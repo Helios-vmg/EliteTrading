@@ -1,6 +1,5 @@
 #include "ed_info.h"
 #include "util.h"
-#include <iostream>
 #include <vector>
 #include <map>
 #include <memory>
@@ -9,7 +8,7 @@
 #include <fstream>
 #include <sstream>
 #include <boost/filesystem.hpp>
-#include <iomanip>
+#include <chrono>
 
 const char * const database_path = "data.sqlite";
 const char * const database_journal_path = "data.sqlite-journal";
@@ -609,15 +608,52 @@ std::vector<StarSystem *> ED_Info::find_route_candidate_systems(const StarSystem
 	return ret;
 }
 
-bool segments_by_profit(const std::shared_ptr<RouteNode> &a, const std::shared_ptr<RouteNode> &b){
+bool nodes_by_profit(const std::shared_ptr<RouteNode> &a, const std::shared_ptr<RouteNode> &b){
 	return a->get_profit_fitness() > b->get_profit_fitness();
 }
 
-bool segments_by_efficiency(const std::shared_ptr<RouteNode> &a, const std::shared_ptr<RouteNode> &b){
+bool nodes_by_efficiency(const std::shared_ptr<RouteNode> &a, const std::shared_ptr<RouteNode> &b){
 	return a->get_efficiency_fitness() > b->get_efficiency_fitness();
 }
 
-typedef bool (*route_segment_sort_f)(const std::shared_ptr<RouteNode> &, const std::shared_ptr<RouteNode> &);
+double get_node_profit(const std::shared_ptr<RouteNode> &a){
+	return -(double)a->get_profit_fitness();
+}
+
+double get_node_efficiency(const std::shared_ptr<RouteNode> &a){
+	return -a->get_efficiency_fitness();
+}
+
+typedef bool (*route_node_sort_f)(const std::shared_ptr<RouteNode> &, const std::shared_ptr<RouteNode> &);
+typedef double (*route_node_criterium_f)(const std::shared_ptr<RouteNode> &);
+
+void insert_into_multimap(
+		std::multimap<double, std::shared_ptr<RouteNode>> &routes,
+		double max_in_map,
+		size_t max_routes_per_loop,
+		const std::shared_ptr<RouteNode> &item,
+		route_node_criterium_f criterium){
+	auto value = criterium(item);
+	if (!routes.size()){
+		max_in_map = value;
+		routes.insert(std::make_pair(max_in_map, item));
+	}else if (routes.size() < max_routes_per_loop){
+		routes.insert(std::make_pair(value, item));
+		auto it = routes.end();
+		--it;
+		max_in_map = it->first;
+	}else if (value < max_in_map){
+		routes.insert(std::make_pair(value, item));
+		auto it = routes.end();
+		--it;
+		auto it2 = it;
+		--it2;
+		routes.erase(it);
+		max_in_map = it2->first;
+	}
+}
+
+//#define MEASURE_TIMES
 
 std::vector<RouteNodeInterop *> ED_Info::find_routes(
 		Station *around_station,
@@ -629,10 +665,27 @@ std::vector<RouteNodeInterop *> ED_Info::find_routes(
 		bool require_large_pad,
 		bool avoid_loops,
 		double laden_jump_distance){
-	std::vector<std::shared_ptr<RouteNode>> routes;
+	std::multimap<double, std::shared_ptr<RouteNode>> routes;
+	double max_in_map = 0;
 	RouteConstraints constraints(max_capacity, initial_funds, require_large_pad, avoid_loops, laden_jump_distance);
 	std::shared_ptr<RouteNode> first_node(new RouteNode(around_station, constraints));
 	auto around_system = around_station->system;
+	route_node_sort_f sort;
+	route_node_criterium_f criterium;
+	switch (optimization) {
+		case OptimizationType::OptimizeEfficiency:
+			sort = nodes_by_efficiency;
+			criterium = get_node_efficiency;
+			break;
+		case OptimizationType::OptimizeProfit:
+			sort = nodes_by_profit;
+			criterium = get_node_profit;
+			break;
+		default:
+			throw std::exception("Invalid enum value.");
+			break;
+	}
+	const size_t max_routes_per_loop = 10000;
 	DB db(database_path);
 	{
 		auto candidate_systems = this->find_route_candidate_systems(around_system);
@@ -654,41 +707,42 @@ std::vector<RouteNodeInterop *> ED_Info::find_routes(
 					constraints
 				));
 				second->previous_node = first;
-				routes.push_back(second);
+				insert_into_multimap(routes, max_in_map, max_routes_per_loop, second, criterium);
 			}
 		}
 	}
 
 	auto routes_from_station = db << "select station_dst, commodity_id, approximate_distance, profit_per_unit from single_stop_routes where station_src = ? and profit_per_unit >= ?;";
 	unsigned loop = required_stops;
-	route_segment_sort_f sort;
-	switch (optimization) {
-		case OptimizationType::OptimizeEfficiency:
-			sort = segments_by_efficiency;
-			break;
-		case OptimizationType::OptimizeProfit:
-			sort = segments_by_profit;
-			break;
-		default:
-			throw std::exception("Invalid enum value.");
-			break;
-	}
-	const size_t max_routes_per_loop = 10000;
-	const size_t absolute_max_routes = 1000000;
+#ifdef MEASURE_TIMES
+	double times[5] = {0};
+	auto t00 = std::chrono::high_resolution_clock::now();
+#endif
+
 	while (true){
 		this->progress_callback(generate_progress_string("Searching for routes... ", required_stops - loop, required_stops).c_str());
-		if (!loop || routes.size() > max_routes_per_loop){
-			std::sort(routes.begin(), routes.end(), sort);
-			if (routes.size() > max_routes_per_loop)
-				routes.resize(max_routes_per_loop);
-			if (!loop)
-				break;
+#ifdef MEASURE_TIMES
+		auto t10 = std::chrono::high_resolution_clock::now();
+#endif
+		if (!loop){
+#ifdef MEASURE_TIMES
+			auto t11 = std::chrono::high_resolution_clock::now();
+			times[1] += std::chrono::duration_cast<std::chrono::microseconds>(t11 - t10).count() * 1e-6;
+#endif
+			break;
 		}
 		--loop;
+#ifdef MEASURE_TIMES
+		auto t11 = std::chrono::high_resolution_clock::now();
+		times[1] += std::chrono::duration_cast<std::chrono::microseconds>(t11 - t10).count() * 1e-6;
+#endif
 
+#ifdef MEASURE_TIMES
+		auto t20 = std::chrono::high_resolution_clock::now();
+#endif
 		std::map<u64, std::vector<std::shared_ptr<RouteNode>>> routes_by_station;
 		for (auto &route : routes)
-			routes_by_station[route->station->id].clear();
+			routes_by_station[route.second->station->id].clear();
 		
 		for (auto &station_route_pair : routes_by_station){
 			routes_from_station << Reset() << station_route_pair.first << minimum_profit_per_unit;
@@ -706,48 +760,67 @@ std::vector<RouteNodeInterop *> ED_Info::find_routes(
 				station_route_pair.second.push_back(segment);
 			}
 		}
-		std::vector<std::shared_ptr<RouteNode>> new_routes;
+#ifdef MEASURE_TIMES
+		auto t21 = std::chrono::high_resolution_clock::now();
+		times[2] += std::chrono::duration_cast<std::chrono::microseconds>(t21 - t20).count() * 1e-6;
+
+		auto t30 = std::chrono::high_resolution_clock::now();
+#endif
+		std::multimap<double, std::shared_ptr<RouteNode>> new_routes;
+		double new_max_in_map = 0;
 		for (auto &route : routes){
-			const auto &segments = routes_by_station[route->station->id];
+			const auto &segments = routes_by_station[route.second->station->id];
 			for (auto &segment : segments){
 				std::shared_ptr<RouteNode> new_segment(new RouteNode(*segment));
-				new_segment->previous_node = route;
+				new_segment->previous_node = route.second;
 				new_segment->get_funds();
-				new_routes.push_back(new_segment);
+				insert_into_multimap(new_routes, max_in_map, max_routes_per_loop, new_segment, criterium);
 			}
 		}
+#ifdef MEASURE_TIMES
+		auto t31 = std::chrono::high_resolution_clock::now();
+		times[3] += std::chrono::duration_cast<std::chrono::microseconds>(t31 - t30).count() * 1e-6;
+#endif
 		if (!new_routes.size())
 			break;
 		routes = std::move(new_routes);
 	}
+#ifdef MEASURE_TIMES
+	auto t01 = std::chrono::high_resolution_clock::now();
+	times[0] += std::chrono::duration_cast<std::chrono::microseconds>(t01 - t00).count() * 1e-6;
+	{
+		std::ofstream file("times.log");
+		file
+			<< times[0] << std::endl
+			<< times[1] << std::endl
+			<< times[2] << std::endl
+			<< times[3] << std::endl;
+	}
+#endif
 
 	for (auto &route : routes)
-		route->reset_cost();
-	auto n = routes.size();
+		route.second->reset_cost();
 	{
-		//std::ofstream file("hops.log");
-		for (decltype(n) i = 0; i < n; i++){
-			auto &route = routes[i];
+		auto n = routes.size();
+		decltype(n) i = 0;
+		for (auto &route : routes){
 			this->progress_callback(generate_progress_string("Computing exact costs and sorting... ", i, n).c_str());
-			route->get_exact_cost();
-			//file << "[ ";
-			//for (auto current = route; current; current = current->previous_node)
-			//	file << current->hops << ", ";
-			//file << "]\n";
+			i++;
+			route.second->get_exact_cost();
 		}
-	}
-	std::sort(routes.begin(), routes.end(), sort);
 
-	size_t i = 0;
-	for (; i < routes.size(); i++)
-		if (!routes[i]->meets_constraints())
-			break;
-	routes.resize(i);
+		std::multimap<double, std::shared_ptr<RouteNode>> new_routes;
+		double new_max_in_map = 0;
+		for (auto &route : routes)
+			insert_into_multimap(new_routes, max_in_map, max_routes_per_loop, route.second, criterium);
+		routes = std::move(new_routes);
+	}
 
 	std::vector<RouteNodeInterop *> ret;
 	ret.reserve(routes.size());
 	for (auto &route : routes)
-		ret.push_back(route->to_interop());
+		if (route.second->meets_constraints())
+			ret.push_back(route.second->to_interop());
 	return ret;
 }
 

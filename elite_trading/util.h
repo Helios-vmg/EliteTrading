@@ -6,6 +6,7 @@
 #include <boost/optional.hpp>
 #include "rapidjson/rapidjson.h"
 #include "rapidjson/document.h"
+#include <iomanip>
 
 typedef rapidjson::GenericValue<rapidjson::UTF8<>> json_value;
 
