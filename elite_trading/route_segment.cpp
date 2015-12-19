@@ -50,7 +50,7 @@ double RouteNode::ls_to_cost(double ls){
 	return ls > 0 ? sqrt(ls) * 1.8973665961010275991993361266596 : 0;
 }
 
-double RouteNode::get_cost(bool ignore_src, bool ignore_dst) const{
+double RouteNode::get_segment_cost() const{
 	if (!this->previous_node)
 		return 0;
 	double ret = this->approximate_distance / 7.5 * 30;
@@ -64,23 +64,33 @@ double RouteNode::get_cost(bool ignore_src, bool ignore_dst) const{
 			if (ls < 0)
 				ls = -ls;
 		}
-	}else{
-		if (!ignore_src)
-			ls += station_src->distance_to_star.value_or(5000);
-		if (!ignore_dst)
-			ls += this->station->distance_to_star.value_or(5000);
-	}
+	}else
+		ls += station_src->distance_to_star.value_or(5000);
 	ret += this->ls_to_cost(ls);
 	return ret;
 }
 
-double RouteNode::get_exact_cost(bool ignore_src, bool ignore_dst) const{
+double measure_route_length(const Station *home, const std::vector<StarSystem *> &route){
+	double ret = 0;
+	if (route.size()){
+		ret += route.front()->distance(home->system);
+		if (!ret && route.front()->id != home->system->id)
+			throw std::exception("Unknown program state!");
+		for (size_t i = 1; i < route.size(); i++)
+			ret += route[i]->distance(route[i - 1]);
+	}
+	return ret;
+}
+
+double RouteNode::get_exact_segment_cost(){
 	if (!this->previous_node)
 		return 0;
-	auto route = this->station->system->find_fastest_route(this->previous_node->station->system, this->constraints->laden_jump_distance);
-	if (!route.size())
+	auto route = this->station->find_fastest_route(this->previous_node->station, this->constraints->laden_jump_distance);
+	if (!route)
 		return std::numeric_limits<double>::infinity();
-	double ret = route.size() * 40;
+	this->true_distance = measure_route_length(this->station, *route);
+	this->hops = (unsigned)route->size();
+	double ret = route->size() * 40;
 	double ls = 0;
 	auto station_src = previous_node->station;
 	if (station_src->system->id == this->station->system->id){
@@ -91,12 +101,8 @@ double RouteNode::get_exact_cost(bool ignore_src, bool ignore_dst) const{
 			if (ls < 0)
 				ls = -ls;
 		}
-	}else{
-		if (!ignore_src)
-			ls += station_src->distance_to_star.value_or(5000);
-		if (!ignore_dst)
-			ls += this->station->distance_to_star.value_or(5000);
-	}
+	}else
+		ls += this->station->distance_to_star.value_or(5000);
 	ret += this->ls_to_cost(ls);
 	return ret;
 }
@@ -129,7 +135,7 @@ double RouteNode::get_exact_cost(){
 		if (!this->previous_node)
 			this->memo_cost = 0;
 		else{
-			double cost = this->get_exact_cost(false, true);
+			double cost = this->get_exact_segment_cost();
 			if (cost == std::numeric_limits<double>::infinity()){
 				this->memo_constraints = false;
 				this->memo_efficiency_fitness = 0;
@@ -147,6 +153,7 @@ RouteNodeInterop *RouteNode::to_interop(){
 	memset(ret, 0, sizeof(*ret));
 	ret->station_id = this->station->id;
 	ret->system_id = this->station->system->id;
+	ret->distance_to_star = this->station->distance_to_star.get_value_or(-1);
 	if (this->previous_node){
 		ret->previous = this->previous_node->to_interop();
 		if (this->commodity){
@@ -159,6 +166,8 @@ RouteNodeInterop *RouteNode::to_interop(){
 		ret->efficiency = this->get_efficiency();
 		ret->accumulated_profit = this->get_profit();
 		ret->cost = this->get_cost();
+		ret->hops = this->hops;
+		ret->distance = this->true_distance;
 	}
 	return ret;
 }

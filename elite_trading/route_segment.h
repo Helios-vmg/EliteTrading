@@ -81,8 +81,8 @@ class RouteNode{
 	OPTIONAL<u64> memo_profit, memo_expenditure, memo_profit_fitness;
 	OPTIONAL<unsigned> memo_quantity;
 	OPTIONAL<bool> memo_constraints;
-	double get_cost(bool ignore_src, bool ignore_dst) const;
-	double get_exact_cost(bool ignore_src, bool ignore_dst) const;
+	double get_segment_cost() const;
+	double get_exact_segment_cost();
 	bool meets_constraints(std::set<u64> &);
 public:
 	RouteNode(Station *dst, const RouteConstraints &constraints){
@@ -113,6 +113,8 @@ public:
 	std::shared_ptr<RouteNode> previous_node;
 	const RouteConstraints *constraints;
 	u64 available_funds;
+	unsigned hops;
+	double true_distance;
 
 	u64 get_profit(){
 		if (!this->memo_profit.is_initialized())
@@ -129,7 +131,7 @@ public:
 	static double ls_to_cost(double);
 	double get_cost(){
 		if (!this->memo_cost.is_initialized())
-			this->memo_cost = (this->previous_node ? this->previous_node->get_cost() : 0) + this->get_cost(false, true);
+			this->memo_cost = (this->previous_node ? this->previous_node->get_cost() : 0) + this->get_segment_cost();
 		return this->memo_cost.value();
 	}
 	void get_funds();
@@ -141,7 +143,8 @@ public:
 		return this->memo_expenditure.value();
 	}
 	void reset_cost(){
-		this->memo_cost.reset();
+		for (auto current = this; current; current = current->previous_node.get())
+			current->memo_cost.reset();
 	}
 	double get_exact_cost();
 	RouteNodeInterop *to_interop();
@@ -153,6 +156,7 @@ public:
 struct RouteNodeInterop{
 	RouteNodeInterop *previous;
 	u64 station_id;
+	double distance_to_star;
 	u64 system_id;
 	i64 commodity_id;
 	u64 quantity;
@@ -161,6 +165,8 @@ struct RouteNodeInterop{
 	u64 accumulated_profit;
 	u64 expenditure;
 	double cost;
+	double distance;
+	u32 hops;
 	~RouteNodeInterop() {
 		if (this->previous)
 			delete this->previous;

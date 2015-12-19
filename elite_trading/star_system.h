@@ -40,11 +40,14 @@ public:
 		this->nearby_systems.push_back(std::make_pair(dst.get(), d));
 	}
 
-	std::vector<StarSystem*> find_fastest_route(StarSystem *system, double max_distance = -1);
+	std::shared_ptr<std::vector<StarSystem *>> find_fastest_route(StarSystem *system, double max_distance = -1);
+	std::shared_ptr<std::vector<StarSystem *>> find_fastest_route_Astar(StarSystem *system, double max_distance = -1);
 	double distance(const std::shared_ptr<StarSystem> &dst) const{
 		return this->distance(dst.get());
 	}
 	double distance(StarSystem *dst) const{
+		if (dst->id == this->id)
+			return 0;
 		double a = this->x - dst->x;
 		double b = this->y - dst->y;
 		double c = this->z - dst->z;

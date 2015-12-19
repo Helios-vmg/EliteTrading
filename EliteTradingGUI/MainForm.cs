@@ -297,5 +297,13 @@ namespace EliteTradingGUI
 
             PopulateListView();
         }
+
+        private void RouteDisplay_ItemActivate(object sender, EventArgs e)
+        {
+            if (RouteDisplay.SelectedItems.Count == 0)
+                return;
+            var display = new RouteDisplay((RouteNode)RouteDisplay.SelectedItems[0].Tag);
+            display.Show();
+        }
     }
 }

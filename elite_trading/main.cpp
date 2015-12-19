@@ -43,6 +43,14 @@ EXPORT void destroy_suggestions(void *p, i32 n){
 	delete[] array;
 }
 
+char *return_string(const std::string &s){
+	auto n = s.size();
+	auto ret = new char[n + 1];
+	memcpy(ret, s.c_str(), n);
+	ret[n] = 0;
+	return ret;
+}
+
 EXPORT char *get_name(void *p, i32 is_station, u64 id){
 	auto info = (ED_Info *)p;
 	std::string *s;
@@ -55,11 +63,7 @@ EXPORT char *get_name(void *p, i32 is_station, u64 id){
 			return nullptr;
 		s = &info->systems[id]->name;
 	}
-	auto n = s->size();
-	auto ret = new char[n + 1];
-	memcpy(ret, s->c_str(), n);
-	ret[n] = 0;
-	return ret;
+	return return_string(*s);
 }
 
 EXPORT void destroy_string(void *p, void *s){
@@ -146,4 +150,11 @@ EXPORT void destroy_routes(void *p, void *r, i32 size){
 	while (size--)
 		delete routes[size];
 	delete[] routes;
+}
+
+EXPORT char *get_commodity_name(void *p, u64 commodity_id){
+	auto info = (ED_Info *)p;
+	if (info->commodities.size() <= commodity_id)
+		return nullptr;
+	return return_string(info->commodities[commodity_id]->name);
 }

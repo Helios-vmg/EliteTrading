@@ -39,36 +39,6 @@ public:
 		this->route_computed = false;
 		this->approximate_distance = dst->station->system->distance(src->station->system);
 	}
-	void compute_route(){
-		if (this->route_computed)
-			return;
-		this->route_computed = true;
-		this->route = src->station->find_fastest_route(dst->station, this->config_max_hop_distance);
-		if (!this->route.size()){
-			this->hops = -1;
-			this->total_distance = -1;
-			this->max_single_hop_distance = -1;
-		}else{
-			this->hops = int(this->route.size() - 1);
-			this->total_distance = 0;
-			this->max_single_hop_distance = 0;
-			for (size_t i = 1; i < this->route.size(); i++){
-				auto current = this->route[i];
-				auto last = this->route[i - 1];
-				auto d = current->distance(last);
-				this->total_distance += d;
-				this->max_single_hop_distance = std::max(this->max_single_hop_distance, d);
-			}
-		}
-	}
-	const std::vector<StarSystem *> &get_route(){
-		this->compute_route();
-		return this->route;
-	}
-	double get_total_distance(){
-		this->compute_route();
-		return this->total_distance;
-	}
 
 	void save(Statement &route_stmt, DB &db){
 		route_stmt
@@ -751,11 +721,21 @@ std::vector<RouteNodeInterop *> ED_Info::find_routes(
 		routes = std::move(new_routes);
 	}
 
-	this->progress_callback("Computing exact costs and sorting...");
 	for (auto &route : routes)
 		route->reset_cost();
-	for (auto &route : routes)
-		route->get_exact_cost();
+	auto n = routes.size();
+	{
+		//std::ofstream file("hops.log");
+		for (decltype(n) i = 0; i < n; i++){
+			auto &route = routes[i];
+			this->progress_callback(generate_progress_string("Computing exact costs and sorting... ", i, n).c_str());
+			route->get_exact_cost();
+			//file << "[ ";
+			//for (auto current = route; current; current = current->previous_node)
+			//	file << current->hops << ", ";
+			//file << "]\n";
+		}
+	}
 	std::sort(routes.begin(), routes.end(), sort);
 
 	size_t i = 0;
@@ -769,33 +749,6 @@ std::vector<RouteNodeInterop *> ED_Info::find_routes(
 	for (auto &route : routes)
 		ret.push_back(route->to_interop());
 	return ret;
-
-#if 0
-	{
-		auto &segment = segments[0];
-		std::cout
-			<< "At station \"" << segment->station_src->name << "\" in system \"" << segment->station_src->system->name << "\", distance from star: " << segment->station_src->distance_to_star.value_or(5000) << "\n"
-			   "    Buy " << segment->max_quantity() << "x " << segment->commodity->name << " (expenditure: " << segment->segment_expenditure() << ")\n";
-	}
-
-	for (size_t i = 1; i < segments.size(); i++){
-		auto &segment = segments[i];
-		std::cout
-			<< "Travel " << segment->previous_segment->station_dst->system->distance(segment->previous_segment->station_src->system) << " ly\n"
-			   "At station \"" << segment->station_src->name << "\" in system \"" << segment->station_src->system->name << "\", distance from star: " << segment->station_src->distance_to_star.value_or(5000) << "\n"
-			   "    Sell all cargo. Profit: " << segment->segment_profit() << "\n"
-			   "    Buy " << segment->max_quantity() << "x " << segment->commodity->name << " (expenditure: " << segment->segment_expenditure() << ")\n";
-	}
-
-	{
-		auto &segment = segments.back();
-		std::cout
-			<< "Travel " << segment->previous_segment->station_dst->system->distance(segment->previous_segment->station_src->system) << " ly\n"
-			   "At station \"" << segment->station_dst->name << "\" in system \"" << segment->station_dst->system->name << "\", distance from star: " << segment->station_src->distance_to_star.value_or(5000) << "\n"
-			   "    Sell all cargo. Profit:       " << segment->segment_profit() << "\n"
-			   "                    Total profit: " << segment->calculate_profit() << std::endl;
-	}
-#endif
 }
 
 void ED_Info::save_to_db(){

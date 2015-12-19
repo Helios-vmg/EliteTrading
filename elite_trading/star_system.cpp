@@ -2,6 +2,7 @@
 #include "ed_info.h"
 #include "util.h"
 #include <unordered_set>
+#include <queue>
 
 StarSystem::StarSystem(Statement &stmt, ED_Info &info){
 	boost::optional<u64> government, allegiance, state, security, primary_economy, power, power_state;
@@ -61,28 +62,30 @@ void StarSystem::add_station(const std::shared_ptr<Station> &station){
 	station->system = this;
 }
 
-std::vector<StarSystem *> rebuild_list(const std::vector<std::pair<size_t, StarSystem *>> &came_from){
-	std::vector<StarSystem *> ret;
+std::shared_ptr<std::vector<StarSystem *>> rebuild_list(const std::vector<std::pair<size_t, StarSystem *>> &came_from){
+	auto ret = std::make_shared<std::vector<StarSystem *>>();
 	size_t i = came_from.size() - 1;
 	do{
-		ret.push_back(came_from[i].second);
+		ret->push_back(came_from[i].second);
 		i = came_from[i].first;
 	}while (i);
-	std::reverse(ret.begin(), ret.end());
+	std::reverse(ret->begin(), ret->end());
 	return ret;
 }
 
-std::vector<StarSystem *> StarSystem::find_fastest_route(StarSystem *dst, double max_distance){
-	std::vector<std::pair<size_t, StarSystem *>> stack;
+std::shared_ptr<std::vector<StarSystem *>> StarSystem::find_fastest_route(StarSystem *dst, double max_distance){
+	if (dst->id == this->id)
+		return std::make_shared<std::vector<StarSystem *>>();
+	std::deque<std::pair<size_t, StarSystem *>> queue;
 	std::unordered_set<uintptr_t> visited;
 	std::vector<std::pair<size_t, StarSystem *>> came_from;
 	came_from.push_back({0, this});
-	stack.push_back({0, this});
+	queue.push_back({0, this});
 	visited.insert((uintptr_t)this);
 
-	while (stack.size()){
-		auto top = stack.back();
-		stack.pop_back();
+	while (queue.size()){
+		auto top = queue.front();
+		queue.pop_front();
 		auto n = top.second->nearby_systems.size();
 		for (size_t i = 0; i < n; i++){
 			auto distance = top.second->nearby_systems[i].second;
@@ -94,11 +97,52 @@ std::vector<StarSystem *> StarSystem::find_fastest_route(StarSystem *dst, double
 			came_from.push_back({top.first, nearby_system});
 			if (nearby_system->id == dst->id)
 				return rebuild_list(came_from);
-			stack.push_back({came_from.size() - 1, nearby_system});
+			queue.push_back({came_from.size() - 1, nearby_system});
 			visited.insert((uintptr_t)nearby_system);
 		}
 	}
-	return std::vector<StarSystem *>();
+	return std::shared_ptr<std::vector<StarSystem *>>();
+}
+
+typedef std::tuple<double, size_t, StarSystem *> Astar_tuple_t;
+struct tuple_compare{
+	bool operator()(const std::tuple<double, size_t, StarSystem *> &a, const std::tuple<double, size_t, StarSystem *> &b) const{
+		return std::get<0>(a) < std::get<0>(b);
+	}
+};
+
+std::shared_ptr<std::vector<StarSystem *>> StarSystem::find_fastest_route_Astar(StarSystem *dst, double max_distance){
+	if (dst->id == this->id)
+		return std::make_shared<std::vector<StarSystem*>>();
+	std::priority_queue<Astar_tuple_t, std::vector<Astar_tuple_t>, tuple_compare> queue;
+	std::unordered_set<uintptr_t> visited;
+	std::vector<std::pair<size_t, StarSystem *>> came_from;
+	came_from.push_back({0, this});
+	queue.push(Astar_tuple_t{this->distance(dst), 0, this});
+	visited.insert((uintptr_t)this);
+
+	while (queue.size()){
+		auto top = queue.top();
+		queue.pop();
+		auto top_distance = std::get<0>(top);
+		auto top_came_from = std::get<1>(top);
+		auto top_system = std::get<2>(top);
+		auto n = top_system->nearby_systems.size();
+		for (size_t i = 0; i < n; i++){
+			auto distance = top_system->nearby_systems[i].second;
+			if (max_distance >= 0 && distance > max_distance)
+				continue;
+			auto nearby_system = top_system->nearby_systems[i].first;
+			if (visited.find((uintptr_t)nearby_system) != visited.end())
+				continue;
+			came_from.push_back({top_came_from, nearby_system});
+			if (nearby_system->id == dst->id)
+				return rebuild_list(came_from);
+			queue.push(Astar_tuple_t{this->distance(nearby_system), came_from.size() - 1, nearby_system});
+			visited.insert((uintptr_t)nearby_system);
+		}
+	}
+	return std::shared_ptr<std::vector<StarSystem *>>();
 }
 
 void StarSystem::save(Statement &new_system, Statement &new_navigation_route){

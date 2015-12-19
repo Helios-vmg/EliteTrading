@@ -46,6 +46,8 @@
             this.CurrentLocationLabel = new System.Windows.Forms.Label();
             this.SearchLocationsButton = new System.Windows.Forms.Button();
             this.panel2 = new System.Windows.Forms.Panel();
+            this.LadenJumpDistanceInput = new System.Windows.Forms.TextBox();
+            this.label2 = new System.Windows.Forms.Label();
             this.cbAvoidLoops = new System.Windows.Forms.CheckBox();
             this.cbOnlyLargeLanding = new System.Windows.Forms.CheckBox();
             this.CargoCapacityInput = new System.Windows.Forms.TextBox();
@@ -58,8 +60,6 @@
             this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.OptimizeProfitRadio = new System.Windows.Forms.RadioButton();
             this.OptimizeEfficiencyRadio = new System.Windows.Forms.RadioButton();
-            this.label2 = new System.Windows.Forms.Label();
-            this.LadenJumpDistanceInput = new System.Windows.Forms.TextBox();
             this.statusStrip1.SuspendLayout();
             this.Tabs.SuspendLayout();
             this.Tab.SuspendLayout();
@@ -137,11 +137,12 @@
             this.RouteDisplay.FullRowSelect = true;
             this.RouteDisplay.Location = new System.Drawing.Point(3, 210);
             this.RouteDisplay.Name = "RouteDisplay";
-            this.RouteDisplay.Size = new System.Drawing.Size(764, 319);
+            this.RouteDisplay.Size = new System.Drawing.Size(764, 294);
             this.RouteDisplay.TabIndex = 1;
             this.RouteDisplay.UseCompatibleStateImageBehavior = false;
             this.RouteDisplay.View = System.Windows.Forms.View.Details;
             this.RouteDisplay.ColumnClick += new System.Windows.Forms.ColumnClickEventHandler(this.RouteDisplay_ColumnClick);
+            this.RouteDisplay.ItemActivate += new System.EventHandler(this.RouteDisplay_ItemActivate);
             // 
             // FirstLocation
             // 
@@ -259,6 +260,25 @@
             this.panel2.Name = "panel2";
             this.panel2.Size = new System.Drawing.Size(192, 150);
             this.panel2.TabIndex = 14;
+            // 
+            // LadenJumpDistanceInput
+            // 
+            this.LadenJumpDistanceInput.Location = new System.Drawing.Point(114, 101);
+            this.LadenJumpDistanceInput.MaxLength = 64;
+            this.LadenJumpDistanceInput.Name = "LadenJumpDistanceInput";
+            this.LadenJumpDistanceInput.Size = new System.Drawing.Size(73, 20);
+            this.LadenJumpDistanceInput.TabIndex = 14;
+            this.LadenJumpDistanceInput.Text = "-1";
+            this.LadenJumpDistanceInput.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
+            // 
+            // label2
+            // 
+            this.label2.AutoSize = true;
+            this.label2.Location = new System.Drawing.Point(0, 104);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(108, 13);
+            this.label2.TabIndex = 13;
+            this.label2.Text = "Laden jump distance:";
             // 
             // cbAvoidLoops
             // 
@@ -400,25 +420,6 @@
             this.OptimizeEfficiencyRadio.TabStop = true;
             this.OptimizeEfficiencyRadio.Text = "Optimize route efficiency";
             this.OptimizeEfficiencyRadio.UseVisualStyleBackColor = true;
-            // 
-            // label2
-            // 
-            this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(0, 104);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(108, 13);
-            this.label2.TabIndex = 13;
-            this.label2.Text = "Laden jump distance:";
-            // 
-            // LadenJumpDistanceInput
-            // 
-            this.LadenJumpDistanceInput.Location = new System.Drawing.Point(114, 101);
-            this.LadenJumpDistanceInput.MaxLength = 64;
-            this.LadenJumpDistanceInput.Name = "LadenJumpDistanceInput";
-            this.LadenJumpDistanceInput.Size = new System.Drawing.Size(73, 20);
-            this.LadenJumpDistanceInput.TabIndex = 14;
-            this.LadenJumpDistanceInput.Text = "-1";
-            this.LadenJumpDistanceInput.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
             // 
             // MainForm
             // 

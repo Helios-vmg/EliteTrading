@@ -47,6 +47,7 @@ namespace EliteTradingGUI
         {
             public IntPtr Previous;
             public ulong StationId;
+            public double DistanceToStar;
             public ulong SystemId;
             public ulong CommodityId;
             public ulong Quantity;
@@ -55,6 +56,8 @@ namespace EliteTradingGUI
             public ulong AccumulatedProfit;
             public ulong Expenditure;
             public double Cost;
+            public double Distance;
+            public uint Hops;
         };
 
         [DllImport("elite_trading.dll", CallingConvention = CallingConvention.Cdecl)]
@@ -73,5 +76,8 @@ namespace EliteTradingGUI
 
         [DllImport("elite_trading.dll", CallingConvention = CallingConvention.Cdecl)]
         public static extern void destroy_routes(IntPtr instance, IntPtr routes, int size);
+
+        [DllImport("elite_trading.dll", CallingConvention = CallingConvention.Cdecl)]
+        public static extern string get_commodity_name(IntPtr instance, ulong commodityId);
     }
 }

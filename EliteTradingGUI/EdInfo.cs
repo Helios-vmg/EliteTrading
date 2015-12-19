@@ -213,95 +213,10 @@ namespace EliteTradingGUI
         {
             return SearchRoutes(currentLocation.IsStation, currentLocation.Id, avoidLoops, requireLargePad, cargoCapacity, initialCredits, requiredStops, optimization, minimumProfitPerUnit, ladenJumpDistance);
         }
+
+        public string GetCommodityName(ulong commodityId)
+        {
+            return NativeEliteTrading.get_commodity_name(_instance, commodityId);
+        }
     }
-
-    public class RouteNode
-    {
-        public EdInfo Info;
-        public RouteNode Previous;
-        public string StationName;
-        public string SystemName;
-        public ulong StationId;
-        public ulong SystemId;
-        public ulong CommodityId;
-        public ulong Quantity;
-        public ulong ProfitPerUnit;
-        public double Efficiency;
-        public ulong AccumulatedProfit;
-        public ulong Expenditure;
-        public double Cost;
-
-        public RouteNode(EdInfo info, IntPtr ptr)
-        {
-            var structure = (NativeEliteTrading.RouteNodeInterop)Marshal.PtrToStructure(ptr, typeof(NativeEliteTrading.RouteNodeInterop));
-            Info = info;
-            if (structure.Previous != IntPtr.Zero)
-                Previous = new RouteNode(info, structure.Previous);
-            StationId = structure.StationId;
-            SystemId = structure.SystemId;
-            SystemName = info.GetSystemName(SystemId);
-            if (StationId != ulong.MaxValue)
-                StationName = info.GetStationName(StationId);
-            else
-                StationName = SystemName;
-            CommodityId = structure.CommodityId;
-            Quantity = structure.Quantity;
-            ProfitPerUnit = structure.ProfitPerUnit;
-            Efficiency = structure.Efficiency;
-            AccumulatedProfit = structure.AccumulatedProfit;
-            Expenditure = structure.Expenditure;
-            Cost = structure.Cost;
-        }
-
-        private string _locationString;
-
-        public string LocationString
-        {
-            get
-            {
-                if (_locationString == null)
-                    _locationString = ToLocation().ToString();
-                return _locationString;
-            }
-        }
-
-        private int GetNode(int i, out RouteNode result)
-        {
-            if (Previous == null)
-            {
-                if (i == 0)
-                    result = this;
-                else
-                    result = null;
-                return 0;
-            }
-            var index = 1 + Previous.GetNode(i, out result);
-            if (index == i)
-                result = this;
-            return index;
-        }
-
-        public RouteNode GetNode(int i)
-        {
-            RouteNode ret;
-            GetNode(i, out ret);
-            return ret;
-        }
-
-        public EdInfo.Location ToLocation()
-        {
-            var ret = new EdInfo.Location(Info);
-            if (StationId != ulong.MaxValue)
-            {
-                ret.IsStation = true;
-                ret.Id = StationId;
-            }
-            else
-            {
-                ret.IsStation = false;
-                ret.Id = SystemId;
-            }
-            return ret;
-        }
-    };
 }

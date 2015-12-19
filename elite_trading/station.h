@@ -82,8 +82,11 @@ public:
 	void add_extra(Statement &stmt, const ED_Info &info);
 	void add_economy(Statement &stmt, const std::shared_ptr<Commodity> &commodity);
 	void add_economy(u64 listing[9], const std::shared_ptr<Commodity> &commodity);
-	std::vector<StarSystem*> find_fastest_route(Station *station, double max_distance = -1){
+	std::shared_ptr<std::vector<StarSystem *>> find_fastest_route(Station *station, double max_distance = -1){
 		return this->system->find_fastest_route(station->system, max_distance);
+	}
+	std::shared_ptr<std::vector<StarSystem *>> find_fastest_route_Astar(Station *station, double max_distance = -1){
+		return this->system->find_fastest_route_Astar(station->system, max_distance);
 	}
 	static std::shared_ptr<Station> create_virtual_station(StarSystem *system);
 
