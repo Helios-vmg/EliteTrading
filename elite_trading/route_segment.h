@@ -10,15 +10,19 @@ struct RouteConstraints{
 	u64 initial_funds;
 	bool require_large_pad;
 	bool avoid_loops;
+	double laden_jump_distance;
+
 	RouteConstraints(
 			unsigned max_capacity,
 			u64 initial_funds,
 			bool require_large_pad,
-			bool avoid_loops){
+			bool avoid_loops,
+			double laden_jump_distance){
 		this->max_capacity = max_capacity;
 		this->initial_funds = initial_funds;
 		this->require_large_pad = require_large_pad;
 		this->avoid_loops = avoid_loops;
+		this->laden_jump_distance = laden_jump_distance;
 	}
 };
 
@@ -78,6 +82,7 @@ class RouteNode{
 	OPTIONAL<unsigned> memo_quantity;
 	OPTIONAL<bool> memo_constraints;
 	double get_cost(bool ignore_src, bool ignore_dst) const;
+	double get_exact_cost(bool ignore_src, bool ignore_dst) const;
 	bool meets_constraints(std::set<u64> &);
 public:
 	RouteNode(Station *dst, const RouteConstraints &constraints){
@@ -105,13 +110,13 @@ public:
 	Commodity *commodity;
 	double approximate_distance;
 	u64 profit_per_unit;
-	std::shared_ptr<RouteNode> previous_segment;
+	std::shared_ptr<RouteNode> previous_node;
 	const RouteConstraints *constraints;
 	u64 available_funds;
 
 	u64 get_profit(){
 		if (!this->memo_profit.is_initialized())
-			this->memo_profit = (this->previous_segment ? this->previous_segment->get_profit() : 0) + this->get_segment_profit();
+			this->memo_profit = (this->previous_node ? this->previous_node->get_profit() : 0) + this->get_segment_profit();
 		return this->memo_profit.value();
 	}
 	double get_efficiency_fitness();
@@ -124,7 +129,7 @@ public:
 	static double ls_to_cost(double);
 	double get_cost(){
 		if (!this->memo_cost.is_initialized())
-			this->memo_cost = (this->previous_segment ? this->previous_segment->get_cost() : 0) + this->get_cost(false, true);
+			this->memo_cost = (this->previous_node ? this->previous_node->get_cost() : 0) + this->get_cost(false, true);
 		return this->memo_cost.value();
 	}
 	void get_funds();
@@ -135,7 +140,14 @@ public:
 			this->get_max_quantity();
 		return this->memo_expenditure.value();
 	}
+	void reset_cost(){
+		this->memo_cost.reset();
+	}
+	double get_exact_cost();
 	RouteNodeInterop *to_interop();
+	bool meets_constraints(){
+		return this->memo_constraints.value();
+	}
 };
 
 struct RouteNodeInterop{

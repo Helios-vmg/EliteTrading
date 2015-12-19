@@ -34,10 +34,10 @@
             this.Tab = new System.Windows.Forms.TabPage();
             this.tableLayoutPanel2 = new System.Windows.Forms.TableLayoutPanel();
             this.RouteDisplay = new System.Windows.Forms.ListView();
+            this.FirstLocation = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.Profit = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.Cost = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.Efficiency = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.FirstSystem = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.panel1 = new System.Windows.Forms.Panel();
             this.MinProfitPerUnitInput = new System.Windows.Forms.TextBox();
             this.label1 = new System.Windows.Forms.Label();
@@ -58,6 +58,8 @@
             this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.OptimizeProfitRadio = new System.Windows.Forms.RadioButton();
             this.OptimizeEfficiencyRadio = new System.Windows.Forms.RadioButton();
+            this.label2 = new System.Windows.Forms.Label();
+            this.LadenJumpDistanceInput = new System.Windows.Forms.TextBox();
             this.statusStrip1.SuspendLayout();
             this.Tabs.SuspendLayout();
             this.Tab.SuspendLayout();
@@ -127,17 +129,24 @@
             // RouteDisplay
             // 
             this.RouteDisplay.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
-            this.FirstSystem,
+            this.FirstLocation,
             this.Profit,
             this.Cost,
             this.Efficiency});
             this.RouteDisplay.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.RouteDisplay.Location = new System.Drawing.Point(3, 185);
+            this.RouteDisplay.FullRowSelect = true;
+            this.RouteDisplay.Location = new System.Drawing.Point(3, 210);
             this.RouteDisplay.Name = "RouteDisplay";
             this.RouteDisplay.Size = new System.Drawing.Size(764, 319);
             this.RouteDisplay.TabIndex = 1;
             this.RouteDisplay.UseCompatibleStateImageBehavior = false;
             this.RouteDisplay.View = System.Windows.Forms.View.Details;
+            this.RouteDisplay.ColumnClick += new System.Windows.Forms.ColumnClickEventHandler(this.RouteDisplay_ColumnClick);
+            // 
+            // FirstLocation
+            // 
+            this.FirstLocation.Text = "First Location";
+            this.FirstLocation.Width = 300;
             // 
             // Profit
             // 
@@ -150,11 +159,6 @@
             // Efficiency
             // 
             this.Efficiency.Text = "Efficiency";
-            // 
-            // FirstSystem
-            // 
-            this.FirstSystem.Text = "First System";
-            this.FirstSystem.Width = 300;
             // 
             // panel1
             // 
@@ -169,7 +173,7 @@
             this.panel1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.panel1.Location = new System.Drawing.Point(3, 3);
             this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(764, 176);
+            this.panel1.Size = new System.Drawing.Size(764, 201);
             this.panel1.TabIndex = 2;
             // 
             // MinProfitPerUnitInput
@@ -241,6 +245,8 @@
             // 
             this.panel2.AutoSize = true;
             this.panel2.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.panel2.Controls.Add(this.LadenJumpDistanceInput);
+            this.panel2.Controls.Add(this.label2);
             this.panel2.Controls.Add(this.cbAvoidLoops);
             this.panel2.Controls.Add(this.cbOnlyLargeLanding);
             this.panel2.Controls.Add(this.CargoCapacityInput);
@@ -251,7 +257,7 @@
             this.panel2.Controls.Add(this.RequiredStopsInput);
             this.panel2.Location = new System.Drawing.Point(11, 48);
             this.panel2.Name = "panel2";
-            this.panel2.Size = new System.Drawing.Size(192, 124);
+            this.panel2.Size = new System.Drawing.Size(192, 150);
             this.panel2.TabIndex = 14;
             // 
             // cbAvoidLoops
@@ -321,7 +327,7 @@
             // label6
             // 
             this.label6.AutoSize = true;
-            this.label6.Location = new System.Drawing.Point(0, 103);
+            this.label6.Location = new System.Drawing.Point(0, 129);
             this.label6.Margin = new System.Windows.Forms.Padding(3);
             this.label6.Name = "label6";
             this.label6.Size = new System.Drawing.Size(81, 13);
@@ -331,7 +337,7 @@
             // 
             // RequiredStopsInput
             // 
-            this.RequiredStopsInput.Location = new System.Drawing.Point(87, 101);
+            this.RequiredStopsInput.Location = new System.Drawing.Point(87, 127);
             this.RequiredStopsInput.Maximum = new decimal(new int[] {
             1024,
             0,
@@ -395,6 +401,25 @@
             this.OptimizeEfficiencyRadio.Text = "Optimize route efficiency";
             this.OptimizeEfficiencyRadio.UseVisualStyleBackColor = true;
             // 
+            // label2
+            // 
+            this.label2.AutoSize = true;
+            this.label2.Location = new System.Drawing.Point(0, 104);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(108, 13);
+            this.label2.TabIndex = 13;
+            this.label2.Text = "Laden jump distance:";
+            // 
+            // LadenJumpDistanceInput
+            // 
+            this.LadenJumpDistanceInput.Location = new System.Drawing.Point(114, 101);
+            this.LadenJumpDistanceInput.MaxLength = 64;
+            this.LadenJumpDistanceInput.Name = "LadenJumpDistanceInput";
+            this.LadenJumpDistanceInput.Size = new System.Drawing.Size(73, 20);
+            this.LadenJumpDistanceInput.TabIndex = 14;
+            this.LadenJumpDistanceInput.Text = "-1";
+            this.LadenJumpDistanceInput.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -444,7 +469,7 @@
         private System.Windows.Forms.ColumnHeader Profit;
         private System.Windows.Forms.ColumnHeader Cost;
         private System.Windows.Forms.ColumnHeader Efficiency;
-        private System.Windows.Forms.ColumnHeader FirstSystem;
+        private System.Windows.Forms.ColumnHeader FirstLocation;
         private System.Windows.Forms.Label label5;
         private System.Windows.Forms.Button SearchLocationsButton;
         private System.Windows.Forms.Label CurrentLocationLabel;
@@ -458,5 +483,7 @@
         private System.Windows.Forms.RadioButton OptimizeEfficiencyRadio;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.TextBox MinProfitPerUnitInput;
+        private System.Windows.Forms.TextBox LadenJumpDistanceInput;
+        private System.Windows.Forms.Label label2;
     }
 }

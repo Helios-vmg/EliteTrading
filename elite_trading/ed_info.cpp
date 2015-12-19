@@ -657,9 +657,10 @@ std::vector<RouteNodeInterop *> ED_Info::find_routes(
 		OptimizationType optimization,
 		u64 minimum_profit_per_unit,
 		bool require_large_pad,
-		bool avoid_loops){
+		bool avoid_loops,
+		double laden_jump_distance){
 	std::vector<std::shared_ptr<RouteNode>> routes;
-	RouteConstraints constraints(max_capacity, initial_funds, require_large_pad, avoid_loops);
+	RouteConstraints constraints(max_capacity, initial_funds, require_large_pad, avoid_loops, laden_jump_distance);
 	std::shared_ptr<RouteNode> first_node(new RouteNode(around_station, constraints));
 	auto around_system = around_station->system;
 	DB db(database_path);
@@ -674,7 +675,7 @@ std::vector<RouteNodeInterop *> ED_Info::find_routes(
 				double approximate_distance;
 				routes_from_system >> src >> dst >> commodity_id >> approximate_distance >> profit_per_unit;
 				std::shared_ptr<RouteNode> first(new RouteNode(stations[src].get(), constraints));
-				first->previous_segment = first_node;
+				first->previous_node = first_node;
 				std::shared_ptr<RouteNode> second(new RouteNode(
 					stations[dst].get(),
 					commodities[commodity_id].get(),
@@ -682,7 +683,7 @@ std::vector<RouteNodeInterop *> ED_Info::find_routes(
 					profit_per_unit,
 					constraints
 				));
-				second->previous_segment = first;
+				second->previous_node = first;
 				routes.push_back(second);
 			}
 		}
@@ -740,20 +741,28 @@ std::vector<RouteNodeInterop *> ED_Info::find_routes(
 			const auto &segments = routes_by_station[route->station->id];
 			for (auto &segment : segments){
 				std::shared_ptr<RouteNode> new_segment(new RouteNode(*segment));
-				new_segment->previous_segment = route;
+				new_segment->previous_node = route;
 				new_segment->get_funds();
 				new_routes.push_back(new_segment);
 			}
-			//if (new_routes.size() > absolute_max_routes){
-			//	std::sort(new_routes.begin(), new_routes.end(), sort);
-			//	if (new_routes.size() > max_routes_per_loop)
-			//		new_routes.resize(max_routes_per_loop);
-			//}
 		}
 		if (!new_routes.size())
 			break;
 		routes = std::move(new_routes);
 	}
+
+	this->progress_callback("Computing exact costs and sorting...");
+	for (auto &route : routes)
+		route->reset_cost();
+	for (auto &route : routes)
+		route->get_exact_cost();
+	std::sort(routes.begin(), routes.end(), sort);
+
+	size_t i = 0;
+	for (; i < routes.size(); i++)
+		if (!routes[i]->meets_constraints())
+			break;
+	routes.resize(i);
 
 	std::vector<RouteNodeInterop *> ret;
 	ret.reserve(routes.size());

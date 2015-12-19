@@ -24,6 +24,7 @@ namespace EliteTradingGUI
         public uint RequiredStops = 6;
         public OptimizationType Optimization = OptimizationType.OptimizeEfficiency;
         public ulong MinimumProfitPerUnit = 1000;
+        public double LadenJumpDistance = -1;
 
         private static string GetLocation()
         {

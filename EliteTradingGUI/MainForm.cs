@@ -16,8 +16,8 @@ namespace EliteTradingGUI
     {
         private EdInfo _info;
         private Config _config = Config.Load();
-        private EdInfo.Suggestion _currentLocation;
-        private EdInfo.Suggestion CurrentLocation
+        private EdInfo.Location _currentLocation;
+        private EdInfo.Location CurrentLocation
         {
             get
             {
@@ -117,6 +117,7 @@ namespace EliteTradingGUI
                     throw new ArgumentOutOfRangeException();
             }
             MinProfitPerUnitInput.Text = _config.MinimumProfitPerUnit.ToString();
+            LadenJumpDistanceInput.Text = _config.LadenJumpDistance.ToString();
         }
 
         private delegate void OnFinishedProcessingDelegate();
@@ -175,12 +176,28 @@ namespace EliteTradingGUI
                 MessageBox.Show("The minimum profit per unit must be a non-negative integer.", "Parsing error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
+            if (!double.TryParse(LadenJumpDistanceInput.Text, out _config.LadenJumpDistance))
+            {
+                MessageBox.Show("The laden jump distance must be a real number.", "Parsing error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
             _config.Save();
 
+            Tab.Enabled = false;
             var form = this;
             var thread = new Thread(x =>
             {
-                var routes = _info.SearchRoutes(_currentLocation, _config.AvoidLoops, _config.OnlyLargeLandingPad, _config.CargoCapacity, _config.AvailableCredits, _config.RequiredStops, _config.Optimization, _config.MinimumProfitPerUnit);
+                var routes = _info.SearchRoutes(
+                    _currentLocation,
+                    _config.AvoidLoops,
+                    _config.OnlyLargeLandingPad,
+                    _config.CargoCapacity,
+                    _config.AvailableCredits,
+                    _config.RequiredStops,
+                    _config.Optimization,
+                    _config.MinimumProfitPerUnit,
+                    _config.LadenJumpDistance
+                );
                 form.OnFinishedSearchingRoutes(routes);
             });
             thread.Start();
@@ -201,6 +218,8 @@ namespace EliteTradingGUI
 
         private delegate void OnFinishedSearchingRoutesDelegate();
 
+        private List<RouteNode> _routes;
+
         private void OnFinishedSearchingRoutes(List<RouteNode> routes)
         {
             if (InvokeRequired)
@@ -208,11 +227,19 @@ namespace EliteTradingGUI
                 BeginInvoke((OnFinishedSearchingRoutesDelegate)(() => OnFinishedSearchingRoutes(routes)));
                 return;
             }
+            Tab.Enabled = true;
+            ReportProgress("Ready");
+            _routes = routes;
+            PopulateListView();
+        }
+
+        private void PopulateListView()
+        {
             RouteDisplay.Items.Clear();
-            foreach (var routeNode in routes)
+            foreach (var routeNode in _routes.Take(100))
             {
                 var item = new ListViewItem();
-                item.Text = routeNode.StationName;
+                item.Text = routeNode.GetNode(1).LocationString;
                 item.SubItems.Add(new ListViewItem.ListViewSubItem
                 {
                     Text = routeNode.AccumulatedProfit.ToString()
@@ -225,8 +252,50 @@ namespace EliteTradingGUI
                 {
                     Text = routeNode.Efficiency.ToString()
                 });
+                item.Tag = routeNode;
                 RouteDisplay.Items.Add(item);
             }
+        }
+
+        private int SortByLocationString(RouteNode x, RouteNode y)
+        {
+            return String.Compare(x.LocationString, y.LocationString, StringComparison.InvariantCulture);
+        }
+
+        private int SortByProfit(RouteNode x, RouteNode y)
+        {
+            return -x.AccumulatedProfit.CompareTo(y.AccumulatedProfit);
+        }
+
+        private int SortByCost(RouteNode x, RouteNode y)
+        {
+            return x.Cost.CompareTo(y.Cost);
+        }
+
+        private int SortByEfficiency(RouteNode x, RouteNode y)
+        {
+            return -x.Efficiency.CompareTo(y.Efficiency);
+        }
+
+        private void RouteDisplay_ColumnClick(object sender, ColumnClickEventArgs e)
+        {
+            switch (RouteDisplay.Columns[e.Column].Text)
+            {
+                case "First Location":
+                    _routes.Sort(SortByLocationString);
+                    break;
+                case "Profit":
+                    _routes.Sort(SortByProfit);
+                    break;
+                case "Cost":
+                    _routes.Sort(SortByCost);
+                    break;
+                case "Efficiency":
+                    _routes.Sort(SortByEfficiency);
+                    break;
+            }
+
+            PopulateListView();
         }
     }
 }

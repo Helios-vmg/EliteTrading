@@ -92,7 +92,8 @@ EXPORT void *search_nearby_routes(
 		i64 initial_credits,
 		u32 required_stops,
 		i32 optimization_setting,
-		u64 minimum_profit_per_unit){
+		u64 minimum_profit_per_unit,
+		double laden_jump_distance){
 	if (!required_stops)
 		return nullptr;
 	auto info = (ED_Info *)p;
@@ -106,12 +107,32 @@ EXPORT void *search_nearby_routes(
 		if (info->stations.size() <= current_location)
 			return nullptr;
 		auto location = info->stations[current_location];
-		routes = info->find_routes(location, cargo, funds, required_stops, optimization, minimum_profit_per_unit, require_large_pad, avoid_loops);
+		routes = info->find_routes(
+			location,
+			cargo,
+			funds,
+			required_stops,
+			optimization,
+			minimum_profit_per_unit,
+			require_large_pad,
+			avoid_loops,
+			laden_jump_distance
+		);
 	}else{
 		if (info->systems.size() <= current_location)
 			return nullptr;
 		auto location = info->systems[current_location];
-		routes = info->find_routes(location, cargo, funds, required_stops, optimization, minimum_profit_per_unit, require_large_pad, avoid_loops);
+		routes = info->find_routes(
+			location,
+			cargo,
+			funds,
+			required_stops,
+			optimization,
+			minimum_profit_per_unit,
+			require_large_pad,
+			avoid_loops,
+			laden_jump_distance
+		);
 	}
 
 	auto ret = new RouteNodeInterop *[routes.size()];

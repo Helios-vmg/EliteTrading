@@ -74,7 +74,7 @@ namespace EliteTradingGUI
         {
             if (SuggestionsDisplay.SelectedItems.Count == 0)
                 return;
-            Result = SuggestionsDisplay.SelectedItems[0].Tag as EdInfo.Suggestion;
+            Result = SuggestionsDisplay.SelectedItems[0].Tag as EdInfo.Location;
             Cancelled = false;
             _ignoreClose = true;
             try
@@ -87,7 +87,7 @@ namespace EliteTradingGUI
             }
         }
 
-        public EdInfo.Suggestion Result { get; private set; }
+        public EdInfo.Location Result { get; private set; }
         public bool Cancelled { get; private set; }
 
         private void LocationSearchDialog_FormClosing(object sender, FormClosingEventArgs e)

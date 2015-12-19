@@ -10,64 +10,6 @@ namespace EliteTradingGUI
 {
     public class EdInfo : IDisposable
     {
-        public static class NativeEliteTrading
-        {
-            [DllImport("elite_trading.dll", CallingConvention = CallingConvention.Cdecl)]
-            public static extern IntPtr initialize_info(ProgressCallback temp);
-
-            [DllImport("elite_trading.dll", CallingConvention = CallingConvention.Cdecl)]
-            public static extern void destroy_info(IntPtr instance);
-        
-            [DllImport("elite_trading.dll", CallingConvention = CallingConvention.Cdecl)]
-            public static extern int database_exists();
-
-            [UnmanagedFunctionPointer(CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
-            public delegate void ProgressCallback(string s);
-
-            [DllImport("elite_trading.dll", CallingConvention = CallingConvention.Cdecl)]
-            public static extern IntPtr import_data(ProgressCallback callback);
-
-            [DllImport("elite_trading.dll", CallingConvention = CallingConvention.Cdecl)]
-            public static extern void recompute_all_routes(IntPtr instance, double maxStopDistance, ulong minProfitPerUnit);
-
-            [DllImport("elite_trading.dll", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
-            public static extern IntPtr get_suggestions(out int n, IntPtr instance, string input);
-            
-            [DllImport("elite_trading.dll", CallingConvention = CallingConvention.Cdecl)]
-            public static extern void destroy_suggestions(IntPtr p, int n);
-
-            [DllImport("elite_trading.dll", CallingConvention = CallingConvention.Cdecl)]
-            public static extern IntPtr get_name(IntPtr instance, int isStation, ulong id);
-
-            [DllImport("elite_trading.dll", CallingConvention = CallingConvention.Cdecl)]
-            public static extern void destroy_string(IntPtr instance, IntPtr ptr);
-
-            [DllImport("elite_trading.dll", CallingConvention = CallingConvention.Cdecl)]
-            public static extern ulong get_system_for_station(IntPtr instance, ulong id);
-
-            [StructLayout(LayoutKind.Sequential)]
-            public struct RouteNodeInterop
-            {
-                public IntPtr Previous;
-                public ulong StationId;
-                public ulong SystemId;
-                public ulong CommodityId;
-                public ulong Quantity;
-                public ulong ProfitPerUnit;
-                public double Efficiency;
-                public ulong AccumulatedProfit;
-                public ulong Expenditure;
-                public double Cost;
-            };
-
-            [DllImport("elite_trading.dll", CallingConvention = CallingConvention.Cdecl)]
-            public static extern IntPtr search_nearby_routes(IntPtr instance, out int resultSize, ulong currentLocation,
-                uint flags, int cargoCapacity, long initialCredits, uint requiredStops, int optimizationSetting,
-                ulong minimumProfitPerUnit);
-
-            [DllImport("elite_trading.dll", CallingConvention = CallingConvention.Cdecl)]
-            public static extern void destroy_routes(IntPtr instance, IntPtr routes, int size);
-        }
         private IntPtr _instance;
         private GCHandle _callback;
         public EdInfo(Action<string> callback)
@@ -107,7 +49,7 @@ namespace EliteTradingGUI
             NativeEliteTrading.recompute_all_routes(_instance, maxStopDistance, minProfitPerUnit);
         }
 
-        public class Suggestion
+        public class Location
         {
             public readonly EdInfo Info;
             public bool IsStation;
@@ -115,7 +57,7 @@ namespace EliteTradingGUI
             private string _name;
             private string _systemName;
 
-            internal Suggestion(EdInfo info)
+            internal Location(EdInfo info)
             {
                 Info = info;
             }
@@ -157,19 +99,19 @@ namespace EliteTradingGUI
             }
         }
 
-        public List<Suggestion> GetSuggestions(string s)
+        public List<Location> GetSuggestions(string s)
         {
             int returnedSuggestions;
             var suggestions = NativeEliteTrading.get_suggestions(out returnedSuggestions, _instance, s);
             try
             {
-                var ret = new List<Suggestion>();
+                var ret = new List<Location>();
                 ret.Capacity = returnedSuggestions;
                 for (int i = 0; i < returnedSuggestions; i++)
                 {
                     var id = Marshal.ReadInt64(suggestions, i*8);
                     ret.Add(
-                        new Suggestion(this)
+                        new Location(this)
                         {
                             IsStation = id < 0,
                             Id = (ulong) Math.Abs(id) - 1,
@@ -226,7 +168,7 @@ namespace EliteTradingGUI
             RequireLargePad = 4,
         }
 
-        private List<RouteNode> SearchRoutes(bool isStation, ulong id, bool avoidLoops, bool requireLargePad, int cargoCapacity, long initialCredits, uint requiredStops, OptimizationType optimization, ulong minimumProfitPerUnit)
+        private List<RouteNode> SearchRoutes(bool isStation, ulong id, bool avoidLoops, bool requireLargePad, int cargoCapacity, long initialCredits, uint requiredStops, OptimizationType optimization, ulong minimumProfitPerUnit, double ladenJumpDistance)
         {
             int size;
             SearchFlags flags = SearchFlags.None;
@@ -236,7 +178,18 @@ namespace EliteTradingGUI
                 flags |= SearchFlags.AvoidLoops;
             if (requireLargePad)
                 flags |= SearchFlags.RequireLargePad;
-            var routes = NativeEliteTrading.search_nearby_routes(_instance, out size, id, (uint)flags, cargoCapacity, initialCredits, requiredStops, (int)optimization, minimumProfitPerUnit);
+            var routes = NativeEliteTrading.search_nearby_routes(
+                _instance,
+                out size,
+                id,
+                (uint)flags,
+                cargoCapacity,
+                initialCredits,
+                requiredStops,
+                (int)optimization,
+                minimumProfitPerUnit,
+                ladenJumpDistance
+            );
             try
             {
                 var ret = new List<RouteNode>();
@@ -256,9 +209,9 @@ namespace EliteTradingGUI
             }
         }
 
-        public List<RouteNode> SearchRoutes(Suggestion currentLocation, bool avoidLoops, bool requireLargePad, int cargoCapacity, long initialCredits, uint requiredStops, OptimizationType optimization, ulong minimumProfitPerUnit)
+        public List<RouteNode> SearchRoutes(Location currentLocation, bool avoidLoops, bool requireLargePad, int cargoCapacity, long initialCredits, uint requiredStops, OptimizationType optimization, ulong minimumProfitPerUnit, double ladenJumpDistance)
         {
-            return SearchRoutes(currentLocation.IsStation, currentLocation.Id, avoidLoops, requireLargePad, cargoCapacity, initialCredits, requiredStops, optimization, minimumProfitPerUnit);
+            return SearchRoutes(currentLocation.IsStation, currentLocation.Id, avoidLoops, requireLargePad, cargoCapacity, initialCredits, requiredStops, optimization, minimumProfitPerUnit, ladenJumpDistance);
         }
     }
 
@@ -280,14 +233,17 @@ namespace EliteTradingGUI
 
         public RouteNode(EdInfo info, IntPtr ptr)
         {
-            var structure = (EdInfo.NativeEliteTrading.RouteNodeInterop)Marshal.PtrToStructure(ptr, typeof(EdInfo.NativeEliteTrading.RouteNodeInterop));
+            var structure = (NativeEliteTrading.RouteNodeInterop)Marshal.PtrToStructure(ptr, typeof(NativeEliteTrading.RouteNodeInterop));
             Info = info;
             if (structure.Previous != IntPtr.Zero)
                 Previous = new RouteNode(info, structure.Previous);
             StationId = structure.StationId;
             SystemId = structure.SystemId;
-            StationName = info.GetStationName(StationId);
             SystemName = info.GetSystemName(SystemId);
+            if (StationId != ulong.MaxValue)
+                StationName = info.GetStationName(StationId);
+            else
+                StationName = SystemName;
             CommodityId = structure.CommodityId;
             Quantity = structure.Quantity;
             ProfitPerUnit = structure.ProfitPerUnit;
@@ -295,6 +251,57 @@ namespace EliteTradingGUI
             AccumulatedProfit = structure.AccumulatedProfit;
             Expenditure = structure.Expenditure;
             Cost = structure.Cost;
+        }
+
+        private string _locationString;
+
+        public string LocationString
+        {
+            get
+            {
+                if (_locationString == null)
+                    _locationString = ToLocation().ToString();
+                return _locationString;
+            }
+        }
+
+        private int GetNode(int i, out RouteNode result)
+        {
+            if (Previous == null)
+            {
+                if (i == 0)
+                    result = this;
+                else
+                    result = null;
+                return 0;
+            }
+            var index = 1 + Previous.GetNode(i, out result);
+            if (index == i)
+                result = this;
+            return index;
+        }
+
+        public RouteNode GetNode(int i)
+        {
+            RouteNode ret;
+            GetNode(i, out ret);
+            return ret;
+        }
+
+        public EdInfo.Location ToLocation()
+        {
+            var ret = new EdInfo.Location(Info);
+            if (StationId != ulong.MaxValue)
+            {
+                ret.IsStation = true;
+                ret.Id = StationId;
+            }
+            else
+            {
+                ret.IsStation = false;
+                ret.Id = SystemId;
+            }
+            return ret;
         }
     };
 }
