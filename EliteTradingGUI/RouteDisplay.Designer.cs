@@ -42,7 +42,6 @@
             this.webBrowser.Name = "webBrowser";
             this.webBrowser.Size = new System.Drawing.Size(754, 570);
             this.webBrowser.TabIndex = 0;
-            this.webBrowser.WebBrowserShortcutsEnabled = false;
             // 
             // RouteDisplay
             // 
