@@ -104,6 +104,7 @@ public:
 		this->approximate_distance = approx_dist;
 		this->profit_per_unit = profit;
 		this->constraints = &constraints;
+		this->available_funds = constraints.initial_funds;
 	}
 
 	Station *station;

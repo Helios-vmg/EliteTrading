@@ -130,16 +130,23 @@ u64 RouteNode::get_segment_profit(){
 
 double RouteNode::get_exact_cost(){
 	if (!this->memo_cost.is_initialized()){
-		if (!this->previous_node)
+		if (!this->previous_node){
 			this->memo_cost = 0;
-		else{
+			this->memo_constraints = true;
+			this->memo_efficiency_fitness = 0;
+			this->memo_profit_fitness = 0;
+		}else{
 			double cost = this->get_exact_segment_cost();
 			if (cost == std::numeric_limits<double>::infinity()){
 				this->memo_constraints = false;
 				this->memo_efficiency_fitness = 0;
 				this->memo_profit_fitness = 0;
-			}else
+			}else{
 				cost += this->previous_node->get_exact_cost();
+				this->memo_constraints = true;
+				this->memo_efficiency_fitness.reset();
+				this->memo_profit_fitness.reset();
+			}
 			this->memo_cost = cost;
 		}
 	}
