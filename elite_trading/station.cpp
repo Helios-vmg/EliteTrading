@@ -37,7 +37,7 @@ Station::Station(const json_value &obj, ED_Info &info){
 	else if (max_landing_pad_size == "L")
 		this->max_landing_pad_size = 1;
 	else
-		throw std::exception("Invalid data.");
+		this->max_landing_pad_size = 0;
 	SET_MEMBER(distance_to_star, obj);
 	SET_MEMBER(faction, obj);
 	std::string government, allegiance, state, type;
