@@ -318,7 +318,11 @@ void ED_Info::thread_func(thread_func_params params){
 			auto &src_location = kv.second[i];
 			for (auto &dst_location : it2->second){
 				assert(src_location->commodity->id == dst_location->commodity->id);
-				if (dst_location->price <= src_location->price || dst_location->price - src_location->price < params.min_profit_per_unit)
+				bool invalid_route = false;
+				invalid_route = dst_location->station->id == src_location->station->id;
+				invalid_route = invalid_route || dst_location->price <= src_location->price;
+				invalid_route = invalid_route || dst_location->price - src_location->price < params.min_profit_per_unit;
+				if (invalid_route)
 					continue;
 				std::shared_ptr<SingleStopTradingRoute> route(new SingleStopTradingRoute(src_location.get(), dst_location.get()));
 				if (params.max_stop_distance >= 0 && route->approximate_distance > params.max_stop_distance)
