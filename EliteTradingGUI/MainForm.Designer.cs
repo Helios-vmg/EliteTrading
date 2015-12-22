@@ -39,6 +39,8 @@
             this.Cost = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.Efficiency = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.panel1 = new System.Windows.Forms.Panel();
+            this.label7 = new System.Windows.Forms.Label();
+            this.MaxPriceAgeInput = new System.Windows.Forms.NumericUpDown();
             this.MinProfitPerUnitInput = new System.Windows.Forms.TextBox();
             this.label1 = new System.Windows.Forms.Label();
             this.panel3 = new System.Windows.Forms.Panel();
@@ -60,18 +62,16 @@
             this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.OptimizeProfitRadio = new System.Windows.Forms.RadioButton();
             this.OptimizeEfficiencyRadio = new System.Windows.Forms.RadioButton();
-            this.MaxPriceAgeInput = new System.Windows.Forms.NumericUpDown();
-            this.label7 = new System.Windows.Forms.Label();
             this.statusStrip1.SuspendLayout();
             this.Tabs.SuspendLayout();
             this.Tab.SuspendLayout();
             this.tableLayoutPanel2.SuspendLayout();
             this.panel1.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.MaxPriceAgeInput)).BeginInit();
             this.panel3.SuspendLayout();
             this.panel2.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.RequiredStopsInput)).BeginInit();
             this.groupBox1.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.MaxPriceAgeInput)).BeginInit();
             this.SuspendLayout();
             // 
             // statusStrip1
@@ -181,6 +181,40 @@
             this.panel1.Name = "panel1";
             this.panel1.Size = new System.Drawing.Size(764, 201);
             this.panel1.TabIndex = 2;
+            // 
+            // label7
+            // 
+            this.label7.AutoSize = true;
+            this.label7.Location = new System.Drawing.Point(216, 151);
+            this.label7.Margin = new System.Windows.Forms.Padding(3);
+            this.label7.Name = "label7";
+            this.label7.Size = new System.Drawing.Size(111, 13);
+            this.label7.TabIndex = 15;
+            this.label7.Text = "Max. price age (days):";
+            this.label7.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            // 
+            // MaxPriceAgeInput
+            // 
+            this.MaxPriceAgeInput.Location = new System.Drawing.Point(333, 149);
+            this.MaxPriceAgeInput.Maximum = new decimal(new int[] {
+            365,
+            0,
+            0,
+            0});
+            this.MaxPriceAgeInput.Minimum = new decimal(new int[] {
+            1,
+            0,
+            0,
+            -2147483648});
+            this.MaxPriceAgeInput.Name = "MaxPriceAgeInput";
+            this.MaxPriceAgeInput.Size = new System.Drawing.Size(70, 20);
+            this.MaxPriceAgeInput.TabIndex = 15;
+            this.MaxPriceAgeInput.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
+            this.MaxPriceAgeInput.Value = new decimal(new int[] {
+            1,
+            0,
+            0,
+            -2147483648});
             // 
             // MinProfitPerUnitInput
             // 
@@ -385,7 +419,7 @@
             // 
             // SearchButton
             // 
-            this.SearchButton.Location = new System.Drawing.Point(534, 100);
+            this.SearchButton.Location = new System.Drawing.Point(328, 175);
             this.SearchButton.Name = "SearchButton";
             this.SearchButton.Size = new System.Drawing.Size(75, 23);
             this.SearchButton.TabIndex = 8;
@@ -426,40 +460,6 @@
             this.OptimizeEfficiencyRadio.Text = "Optimize route efficiency";
             this.OptimizeEfficiencyRadio.UseVisualStyleBackColor = true;
             // 
-            // MaxPriceAgeInput
-            // 
-            this.MaxPriceAgeInput.Location = new System.Drawing.Point(333, 149);
-            this.MaxPriceAgeInput.Maximum = new decimal(new int[] {
-            365,
-            0,
-            0,
-            0});
-            this.MaxPriceAgeInput.Minimum = new decimal(new int[] {
-            1,
-            0,
-            0,
-            -2147483648});
-            this.MaxPriceAgeInput.Name = "MaxPriceAgeInput";
-            this.MaxPriceAgeInput.Size = new System.Drawing.Size(70, 20);
-            this.MaxPriceAgeInput.TabIndex = 15;
-            this.MaxPriceAgeInput.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
-            this.MaxPriceAgeInput.Value = new decimal(new int[] {
-            1,
-            0,
-            0,
-            -2147483648});
-            // 
-            // label7
-            // 
-            this.label7.AutoSize = true;
-            this.label7.Location = new System.Drawing.Point(216, 151);
-            this.label7.Margin = new System.Windows.Forms.Padding(3);
-            this.label7.Name = "label7";
-            this.label7.Size = new System.Drawing.Size(111, 13);
-            this.label7.TabIndex = 15;
-            this.label7.Text = "Max. price age (days):";
-            this.label7.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -479,6 +479,7 @@
             this.tableLayoutPanel2.PerformLayout();
             this.panel1.ResumeLayout(false);
             this.panel1.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.MaxPriceAgeInput)).EndInit();
             this.panel3.ResumeLayout(false);
             this.panel3.PerformLayout();
             this.panel2.ResumeLayout(false);
@@ -486,7 +487,6 @@
             ((System.ComponentModel.ISupportInitialize)(this.RequiredStopsInput)).EndInit();
             this.groupBox1.ResumeLayout(false);
             this.groupBox1.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.MaxPriceAgeInput)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
