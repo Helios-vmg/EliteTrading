@@ -712,7 +712,7 @@ std::vector<RouteNodeInterop *> ED_Info::find_routes(
 				std::shared_ptr<RouteNode> first(new RouteNode(station.get(), constraints));
 				first->previous_node = first_node;
 				std::shared_ptr<RouteNode> second(new RouteNode(
-					station.get(),
+					this->stations[dst].get(),
 					this->commodities[commodity_id].get(),
 					approximate_distance,
 					profit_per_unit,
