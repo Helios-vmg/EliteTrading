@@ -191,10 +191,10 @@ void Station::add_economy(u64 listing[9], const std::shared_ptr<Commodity> &comm
 	this->economy.back().station = this;
 }
 
-u64 Station::find_sell_price(Commodity *commodity){
+const EconomicEntry &Station::find_economic_entry(Commodity *commodity) const{
 	for (auto &entry : this->economy)
 		if (entry.commodity->id == commodity->id)
-			return entry.sell;
+			return entry;
 	throw std::exception("Cannot find commodity.");
 }
 

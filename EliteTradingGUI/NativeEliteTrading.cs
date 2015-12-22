@@ -71,7 +71,8 @@ namespace EliteTradingGUI
             uint requiredStops,
             int optimizationSetting,
             ulong minimumProfitPerUnit,
-            double ladenJumpDistance
+            double ladenJumpDistance,
+            int maxPriceAgeDays
         );
 
         [DllImport("elite_trading.dll", CallingConvention = CallingConvention.Cdecl)]

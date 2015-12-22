@@ -8,6 +8,7 @@
 #include <fstream>
 #include <sstream>
 #include <boost/filesystem.hpp>
+#include <ctime>
 #include <chrono>
 
 const char * const database_path = "data.sqlite";
@@ -664,7 +665,8 @@ std::vector<RouteNodeInterop *> ED_Info::find_routes(
 		u64 minimum_profit_per_unit,
 		bool require_large_pad,
 		bool avoid_loops,
-		double laden_jump_distance){
+		double laden_jump_distance,
+		int max_price_age_days){
 	std::multimap<double, std::shared_ptr<RouteNode>> routes;
 	double max_in_map = 0;
 	RouteConstraints constraints(max_capacity, initial_funds, require_large_pad, avoid_loops, laden_jump_distance);
@@ -686,6 +688,8 @@ std::vector<RouteNodeInterop *> ED_Info::find_routes(
 			break;
 	}
 	const size_t max_routes_per_loop = 10000;
+	auto now_timestamp = time(nullptr);
+	auto max_price_age_seconds = max_price_age_days * 86400;
 	DB db(database_path);
 	{
 		auto candidate_systems = this->find_route_candidate_systems(around_system);
@@ -697,11 +701,15 @@ std::vector<RouteNodeInterop *> ED_Info::find_routes(
 				u64 src, dst, commodity_id, profit_per_unit;
 				double approximate_distance;
 				routes_from_system >> src >> dst >> commodity_id >> approximate_distance >> profit_per_unit;
-				std::shared_ptr<RouteNode> first(new RouteNode(stations[src].get(), constraints));
+				auto station = this->stations[src];
+				auto collected_at = station->find_economic_entry(this->commodities[commodity_id].get()).collected_at;
+				if (max_price_age_days >= 0 && collected_at <= now_timestamp && (now_timestamp - collected_at) >= max_price_age_seconds)
+					continue;
+				std::shared_ptr<RouteNode> first(new RouteNode(station.get(), constraints));
 				first->previous_node = first_node;
 				std::shared_ptr<RouteNode> second(new RouteNode(
-					stations[dst].get(),
-					commodities[commodity_id].get(),
+					station.get(),
+					this->commodities[commodity_id].get(),
 					approximate_distance,
 					profit_per_unit,
 					constraints
@@ -745,14 +753,18 @@ std::vector<RouteNodeInterop *> ED_Info::find_routes(
 			routes_by_station[route.second->station->id].clear();
 		
 		for (auto &station_route_pair : routes_by_station){
+			auto station = this->stations[station_route_pair.first];
 			routes_from_station << Reset() << station_route_pair.first << minimum_profit_per_unit;
 			while (routes_from_station.step() == SQLITE_ROW){
 				u64 dst, commodity_id, profit_per_unit;
 				double approximate_distance;
 				routes_from_station >> dst >> commodity_id >> approximate_distance >> profit_per_unit;
+				auto collected_at = station->find_economic_entry(this->commodities[commodity_id].get()).collected_at;
+				if (max_price_age_days >= 0 && collected_at <= now_timestamp && (now_timestamp - collected_at) >= max_price_age_seconds)
+					continue;
 				std::shared_ptr<RouteNode> segment(new RouteNode(
-					stations[dst].get(),
-					commodities[commodity_id].get(),
+					this->stations[dst].get(),
+					this->commodities[commodity_id].get(),
 					approximate_distance,
 					profit_per_unit,
 					constraints

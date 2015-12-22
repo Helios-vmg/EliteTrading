@@ -97,7 +97,8 @@ EXPORT void *search_nearby_routes(
 		u32 required_stops,
 		i32 optimization_setting,
 		u64 minimum_profit_per_unit,
-		double laden_jump_distance){
+		double laden_jump_distance,
+		int max_price_age_days){
 	if (!required_stops)
 		return nullptr;
 	auto info = (ED_Info *)p;
@@ -120,7 +121,8 @@ EXPORT void *search_nearby_routes(
 			minimum_profit_per_unit,
 			require_large_pad,
 			avoid_loops,
-			laden_jump_distance
+			laden_jump_distance,
+			max_price_age_days
 		);
 	}else{
 		if (info->systems.size() <= current_location)
@@ -135,7 +137,8 @@ EXPORT void *search_nearby_routes(
 			minimum_profit_per_unit,
 			require_large_pad,
 			avoid_loops,
-			laden_jump_distance
+			laden_jump_distance,
+			max_price_age_days
 		);
 	}
 

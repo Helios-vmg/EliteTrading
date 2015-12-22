@@ -168,7 +168,7 @@ namespace EliteTradingGUI
             RequireLargePad = 4,
         }
 
-        private List<RouteNode> SearchRoutes(bool isStation, ulong id, bool avoidLoops, bool requireLargePad, int cargoCapacity, long initialCredits, uint requiredStops, OptimizationType optimization, ulong minimumProfitPerUnit, double ladenJumpDistance)
+        private List<RouteNode> SearchRoutes(bool isStation, ulong id, bool avoidLoops, bool requireLargePad, int cargoCapacity, long initialCredits, uint requiredStops, OptimizationType optimization, ulong minimumProfitPerUnit, double ladenJumpDistance, int maxPriceAgeDays)
         {
             int size;
             SearchFlags flags = SearchFlags.None;
@@ -188,7 +188,8 @@ namespace EliteTradingGUI
                 requiredStops,
                 (int)optimization,
                 minimumProfitPerUnit,
-                ladenJumpDistance
+                ladenJumpDistance,
+                maxPriceAgeDays
             );
             try
             {
@@ -209,9 +210,9 @@ namespace EliteTradingGUI
             }
         }
 
-        public List<RouteNode> SearchRoutes(Location currentLocation, bool avoidLoops, bool requireLargePad, int cargoCapacity, long initialCredits, uint requiredStops, OptimizationType optimization, ulong minimumProfitPerUnit, double ladenJumpDistance)
+        public List<RouteNode> SearchRoutes(Location currentLocation, bool avoidLoops, bool requireLargePad, int cargoCapacity, long initialCredits, uint requiredStops, OptimizationType optimization, ulong minimumProfitPerUnit, double ladenJumpDistance, int maxPriceAgeDays)
         {
-            return SearchRoutes(currentLocation.IsStation, currentLocation.Id, avoidLoops, requireLargePad, cargoCapacity, initialCredits, requiredStops, optimization, minimumProfitPerUnit, ladenJumpDistance);
+            return SearchRoutes(currentLocation.IsStation, currentLocation.Id, avoidLoops, requireLargePad, cargoCapacity, initialCredits, requiredStops, optimization, minimumProfitPerUnit, ladenJumpDistance, maxPriceAgeDays);
         }
 
         public string GetCommodityName(ulong commodityId)

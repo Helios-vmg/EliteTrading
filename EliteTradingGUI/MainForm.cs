@@ -118,6 +118,7 @@ namespace EliteTradingGUI
             }
             MinProfitPerUnitInput.Text = _config.MinimumProfitPerUnit.ToString();
             LadenJumpDistanceInput.Text = _config.LadenJumpDistance.ToString();
+            MaxPriceAgeInput.Value = _config.MaxPriceAgeDays;
         }
 
         private delegate void OnFinishedProcessingDelegate();
@@ -181,6 +182,7 @@ namespace EliteTradingGUI
                 MessageBox.Show("The laden jump distance must be a real number.", "Parsing error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
+            _config.MaxPriceAgeDays = Convert.ToInt32(MaxPriceAgeInput.Value);
             _config.Save();
 
             Tab.Enabled = false;
@@ -196,7 +198,8 @@ namespace EliteTradingGUI
                     _config.RequiredStops,
                     _config.Optimization,
                     _config.MinimumProfitPerUnit,
-                    _config.LadenJumpDistance
+                    _config.LadenJumpDistance,
+                    _config.MaxPriceAgeDays
                 );
                 form.OnFinishedSearchingRoutes(routes);
             });

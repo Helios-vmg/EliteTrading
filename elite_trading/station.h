@@ -90,7 +90,10 @@ public:
 	}
 	static std::shared_ptr<Station> create_virtual_station(StarSystem *system);
 
-	u64 find_sell_price(Commodity *commodity);
+	const EconomicEntry &find_economic_entry(Commodity *commodity) const;
+	u64 find_sell_price(Commodity *commodity) const{
+		return this->find_economic_entry(commodity).sell;
+	}
 	void save(
 		Statement &new_station,
 		Statement &new_extra,

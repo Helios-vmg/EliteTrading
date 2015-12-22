@@ -146,7 +146,8 @@ public: \
 			u64 minimum_profit_per_unit,
 			bool require_large_pad,
 			bool avoid_loops,
-			double laden_jump_distance){
+			double laden_jump_distance,
+			int max_price_age_days){
 		return this->find_routes(
 			around_station.get(),
 			max_capacity,
@@ -156,7 +157,8 @@ public: \
 			minimum_profit_per_unit,
 			require_large_pad,
 			avoid_loops,
-			laden_jump_distance
+			laden_jump_distance,
+			max_price_age_days
 		);
 	}
 	std::vector<RouteNodeInterop *> find_routes(
@@ -168,7 +170,8 @@ public: \
 			u64 minimum_profit_per_unit,
 			bool require_large_pad,
 			bool avoid_loops,
-			double laden_jump_distance){
+			double laden_jump_distance,
+		int max_price_age_days){
 		auto temp_station = Station::create_virtual_station(around_system.get());
 		return this->find_routes(
 			temp_station.get(),
@@ -179,7 +182,8 @@ public: \
 			minimum_profit_per_unit,
 			require_large_pad,
 			avoid_loops,
-			laden_jump_distance
+			laden_jump_distance,
+			max_price_age_days
 		);
 	}
 	std::vector<RouteNodeInterop *> find_routes(
@@ -191,7 +195,8 @@ public: \
 		u64 minimum_profit_per_unit,
 		bool require_large_pad,
 		bool avoid_loops,
-		double laden_jump_distance
+		double laden_jump_distance,
+		int max_price_age_days
 	);
 	void save_to_db();
 	std::shared_ptr<Commodity> ED_Info::get_commodity(const std::string &name);
