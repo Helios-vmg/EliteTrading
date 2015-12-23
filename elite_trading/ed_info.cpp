@@ -714,7 +714,7 @@ std::vector<RouteNodeInterop *> ED_Info::find_routes(
 				routes_from_system >> src >> dst >> commodity_id >> approximate_distance >> profit_per_unit;
 				auto src_station = this->stations[src];
 				auto dst_station = this->stations[dst];
-				if (avoid_permit_systems && (src_station->system->needs_permit || dst_station->system->needs_permit))
+				if (avoid_permit_systems && (src_station->system->needs_permit.value_or(false) || dst_station->system->needs_permit.value_or(false)))
 					continue;
 				auto collected_at = src_station->find_economic_entry(this->commodities[commodity_id].get()).collected_at;
 				if (max_price_age_days >= 0 && collected_at <= now_timestamp && (now_timestamp - collected_at) >= max_price_age_seconds)
@@ -774,7 +774,7 @@ std::vector<RouteNodeInterop *> ED_Info::find_routes(
 				double approximate_distance;
 				routes_from_station >> dst >> commodity_id >> approximate_distance >> profit_per_unit;
 				auto dst_station = this->stations[dst];
-				if (avoid_permit_systems && dst_station->system->needs_permit)
+				if (avoid_permit_systems && dst_station->system->needs_permit.value_or(false))
 					continue;
 				auto collected_at = station->find_economic_entry(this->commodities[commodity_id].get()).collected_at;
 				if (max_price_age_days >= 0 && collected_at <= now_timestamp && (now_timestamp - collected_at) >= max_price_age_seconds)
