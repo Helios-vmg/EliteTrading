@@ -141,7 +141,7 @@
             this.RouteDisplay.FullRowSelect = true;
             this.RouteDisplay.Location = new System.Drawing.Point(3, 232);
             this.RouteDisplay.Name = "RouteDisplay";
-            this.RouteDisplay.Size = new System.Drawing.Size(764, 294);
+            this.RouteDisplay.Size = new System.Drawing.Size(764, 272);
             this.RouteDisplay.TabIndex = 1;
             this.RouteDisplay.UseCompatibleStateImageBehavior = false;
             this.RouteDisplay.View = System.Windows.Forms.View.Details;
