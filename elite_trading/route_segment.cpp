@@ -45,7 +45,8 @@ u64 RouteNode::get_profit_fitness() {
 }
 
 double RouteNode::ls_to_cost(double ls){
-	return ls > 0 ? sqrt(ls) * 1.8973665961010275991993361266596 : 0;
+	//Explanation: Tuned to evaluate to 810 s for an input of 170000.
+	return ls > 0 ? sqrt(ls) * 1.9645385627942970855031423431406 : 0;
 }
 
 double RouteNode::get_segment_cost() const{
