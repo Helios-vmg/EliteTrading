@@ -119,6 +119,7 @@ namespace EliteTradingGUI
             MinProfitPerUnitInput.Text = _config.MinimumProfitPerUnit.ToString();
             LadenJumpDistanceInput.Text = _config.LadenJumpDistance.ToString();
             MaxPriceAgeInput.Value = _config.MaxPriceAgeDays;
+            cbAvoidPermitSystems.Checked = _config.AvoidPermitSystems;
         }
 
         private delegate void OnFinishedProcessingDelegate();
@@ -183,6 +184,7 @@ namespace EliteTradingGUI
                 return;
             }
             _config.MaxPriceAgeDays = Convert.ToInt32(MaxPriceAgeInput.Value);
+            _config.AvoidPermitSystems = cbAvoidPermitSystems.Checked;
             _config.Save();
 
             Tab.Enabled = false;
@@ -193,6 +195,7 @@ namespace EliteTradingGUI
                     _currentLocation,
                     _config.AvoidLoops,
                     _config.OnlyLargeLandingPad,
+                    _config.AvoidPermitSystems,
                     _config.CargoCapacity,
                     _config.AvailableCredits,
                     _config.RequiredStops,

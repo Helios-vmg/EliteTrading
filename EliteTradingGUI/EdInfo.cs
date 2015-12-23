@@ -166,9 +166,10 @@ namespace EliteTradingGUI
             CurrentLocationIsStation = 1,
             AvoidLoops = 2,
             RequireLargePad = 4,
+            AvoidPermitSystems = 8,
         }
 
-        private List<RouteNode> SearchRoutes(bool isStation, ulong id, bool avoidLoops, bool requireLargePad, int cargoCapacity, long initialCredits, uint requiredStops, OptimizationType optimization, ulong minimumProfitPerUnit, double ladenJumpDistance, int maxPriceAgeDays)
+        private List<RouteNode> SearchRoutes(bool isStation, ulong id, bool avoidLoops, bool requireLargePad, bool avoidPermitSystems, int cargoCapacity, long initialCredits, uint requiredStops, OptimizationType optimization, ulong minimumProfitPerUnit, double ladenJumpDistance, int maxPriceAgeDays)
         {
             int size;
             SearchFlags flags = SearchFlags.None;
@@ -178,6 +179,8 @@ namespace EliteTradingGUI
                 flags |= SearchFlags.AvoidLoops;
             if (requireLargePad)
                 flags |= SearchFlags.RequireLargePad;
+            if (avoidPermitSystems)
+                flags |= SearchFlags.AvoidPermitSystems;
             var routes = NativeEliteTrading.search_nearby_routes(
                 _instance,
                 out size,
@@ -210,9 +213,9 @@ namespace EliteTradingGUI
             }
         }
 
-        public List<RouteNode> SearchRoutes(Location currentLocation, bool avoidLoops, bool requireLargePad, int cargoCapacity, long initialCredits, uint requiredStops, OptimizationType optimization, ulong minimumProfitPerUnit, double ladenJumpDistance, int maxPriceAgeDays)
+        public List<RouteNode> SearchRoutes(Location currentLocation, bool avoidLoops, bool requireLargePad, bool avoidPermitSystems, int cargoCapacity, long initialCredits, uint requiredStops, OptimizationType optimization, ulong minimumProfitPerUnit, double ladenJumpDistance, int maxPriceAgeDays)
         {
-            return SearchRoutes(currentLocation.IsStation, currentLocation.Id, avoidLoops, requireLargePad, cargoCapacity, initialCredits, requiredStops, optimization, minimumProfitPerUnit, ladenJumpDistance, maxPriceAgeDays);
+            return SearchRoutes(currentLocation.IsStation, currentLocation.Id, avoidLoops, avoidPermitSystems, requireLargePad, cargoCapacity, initialCredits, requiredStops, optimization, minimumProfitPerUnit, ladenJumpDistance, maxPriceAgeDays);
         }
 
         public string GetCommodityName(ulong commodityId)

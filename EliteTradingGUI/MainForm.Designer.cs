@@ -48,6 +48,7 @@
             this.CurrentLocationLabel = new System.Windows.Forms.Label();
             this.SearchLocationsButton = new System.Windows.Forms.Button();
             this.panel2 = new System.Windows.Forms.Panel();
+            this.cbAvoidPermitSystems = new System.Windows.Forms.CheckBox();
             this.LadenJumpDistanceInput = new System.Windows.Forms.TextBox();
             this.label2 = new System.Windows.Forms.Label();
             this.cbAvoidLoops = new System.Windows.Forms.CheckBox();
@@ -138,7 +139,7 @@
             this.Efficiency});
             this.RouteDisplay.Dock = System.Windows.Forms.DockStyle.Fill;
             this.RouteDisplay.FullRowSelect = true;
-            this.RouteDisplay.Location = new System.Drawing.Point(3, 210);
+            this.RouteDisplay.Location = new System.Drawing.Point(3, 232);
             this.RouteDisplay.Name = "RouteDisplay";
             this.RouteDisplay.Size = new System.Drawing.Size(764, 294);
             this.RouteDisplay.TabIndex = 1;
@@ -179,7 +180,7 @@
             this.panel1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.panel1.Location = new System.Drawing.Point(3, 3);
             this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(764, 201);
+            this.panel1.Size = new System.Drawing.Size(764, 223);
             this.panel1.TabIndex = 2;
             // 
             // label7
@@ -285,6 +286,7 @@
             // 
             this.panel2.AutoSize = true;
             this.panel2.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.panel2.Controls.Add(this.cbAvoidPermitSystems);
             this.panel2.Controls.Add(this.LadenJumpDistanceInput);
             this.panel2.Controls.Add(this.label2);
             this.panel2.Controls.Add(this.cbAvoidLoops);
@@ -297,12 +299,24 @@
             this.panel2.Controls.Add(this.RequiredStopsInput);
             this.panel2.Location = new System.Drawing.Point(11, 48);
             this.panel2.Name = "panel2";
-            this.panel2.Size = new System.Drawing.Size(192, 150);
+            this.panel2.Size = new System.Drawing.Size(192, 172);
             this.panel2.TabIndex = 14;
+            // 
+            // cbAvoidPermitSystems
+            // 
+            this.cbAvoidPermitSystems.AutoSize = true;
+            this.cbAvoidPermitSystems.Checked = true;
+            this.cbAvoidPermitSystems.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.cbAvoidPermitSystems.Location = new System.Drawing.Point(3, 51);
+            this.cbAvoidPermitSystems.Name = "cbAvoidPermitSystems";
+            this.cbAvoidPermitSystems.Size = new System.Drawing.Size(139, 17);
+            this.cbAvoidPermitSystems.TabIndex = 15;
+            this.cbAvoidPermitSystems.Text = "Avoid restricted systems";
+            this.cbAvoidPermitSystems.UseVisualStyleBackColor = true;
             // 
             // LadenJumpDistanceInput
             // 
-            this.LadenJumpDistanceInput.Location = new System.Drawing.Point(114, 101);
+            this.LadenJumpDistanceInput.Location = new System.Drawing.Point(114, 123);
             this.LadenJumpDistanceInput.MaxLength = 64;
             this.LadenJumpDistanceInput.Name = "LadenJumpDistanceInput";
             this.LadenJumpDistanceInput.Size = new System.Drawing.Size(73, 20);
@@ -313,7 +327,7 @@
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(0, 104);
+            this.label2.Location = new System.Drawing.Point(0, 126);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(108, 13);
             this.label2.TabIndex = 13;
@@ -343,7 +357,7 @@
             // 
             // CargoCapacityInput
             // 
-            this.CargoCapacityInput.Location = new System.Drawing.Point(87, 49);
+            this.CargoCapacityInput.Location = new System.Drawing.Point(87, 71);
             this.CargoCapacityInput.MaxLength = 64;
             this.CargoCapacityInput.Name = "CargoCapacityInput";
             this.CargoCapacityInput.Size = new System.Drawing.Size(100, 20);
@@ -354,7 +368,7 @@
             // label3
             // 
             this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(0, 52);
+            this.label3.Location = new System.Drawing.Point(0, 74);
             this.label3.Margin = new System.Windows.Forms.Padding(3);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(81, 13);
@@ -364,7 +378,7 @@
             // 
             // InitialCreditsInput
             // 
-            this.InitialCreditsInput.Location = new System.Drawing.Point(74, 75);
+            this.InitialCreditsInput.Location = new System.Drawing.Point(74, 97);
             this.InitialCreditsInput.MaxLength = 64;
             this.InitialCreditsInput.Name = "InitialCreditsInput";
             this.InitialCreditsInput.Size = new System.Drawing.Size(113, 20);
@@ -375,7 +389,7 @@
             // label4
             // 
             this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(0, 78);
+            this.label4.Location = new System.Drawing.Point(0, 100);
             this.label4.Margin = new System.Windows.Forms.Padding(3);
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(68, 13);
@@ -386,7 +400,7 @@
             // label6
             // 
             this.label6.AutoSize = true;
-            this.label6.Location = new System.Drawing.Point(0, 129);
+            this.label6.Location = new System.Drawing.Point(0, 151);
             this.label6.Margin = new System.Windows.Forms.Padding(3);
             this.label6.Name = "label6";
             this.label6.Size = new System.Drawing.Size(81, 13);
@@ -396,7 +410,7 @@
             // 
             // RequiredStopsInput
             // 
-            this.RequiredStopsInput.Location = new System.Drawing.Point(87, 127);
+            this.RequiredStopsInput.Location = new System.Drawing.Point(87, 149);
             this.RequiredStopsInput.Maximum = new decimal(new int[] {
             1024,
             0,
@@ -419,7 +433,7 @@
             // 
             // SearchButton
             // 
-            this.SearchButton.Location = new System.Drawing.Point(328, 175);
+            this.SearchButton.Location = new System.Drawing.Point(328, 197);
             this.SearchButton.Name = "SearchButton";
             this.SearchButton.Size = new System.Drawing.Size(75, 23);
             this.SearchButton.TabIndex = 8;
@@ -528,5 +542,6 @@
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.Label label7;
         private System.Windows.Forms.NumericUpDown MaxPriceAgeInput;
+        private System.Windows.Forms.CheckBox cbAvoidPermitSystems;
     }
 }

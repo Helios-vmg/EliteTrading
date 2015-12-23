@@ -82,6 +82,7 @@ EXPORT u64 get_system_for_station(void *p, u64 id){
 const u32 current_location_is_station_flag = BIT(0);
 const u32 avoid_loops_flag = BIT(1);
 const u32 require_large_pad_flag = BIT(2);
+const u32 avoid_permit_systems_flag = BIT(3);
 
 bool check_flag(u32 var, u32 flag){
 	return (var & flag) == flag;
@@ -107,6 +108,7 @@ EXPORT void *search_nearby_routes(
 	auto optimization = (OptimizationType)optimization_setting;
 	bool require_large_pad = check_flag(flags, require_large_pad_flag);
 	bool avoid_loops = check_flag(flags, avoid_loops_flag);
+	bool avoid_permit_systems = check_flag(flags, avoid_permit_systems_flag);
 	std::vector<RouteNodeInterop *> routes;
 	if (check_flag(flags, current_location_is_station_flag)){
 		if (info->stations.size() <= current_location)
@@ -121,6 +123,7 @@ EXPORT void *search_nearby_routes(
 			minimum_profit_per_unit,
 			require_large_pad,
 			avoid_loops,
+			avoid_permit_systems,
 			laden_jump_distance,
 			max_price_age_days
 		);
@@ -137,6 +140,7 @@ EXPORT void *search_nearby_routes(
 			minimum_profit_per_unit,
 			require_large_pad,
 			avoid_loops,
+			avoid_permit_systems,
 			laden_jump_distance,
 			max_price_age_days
 		);

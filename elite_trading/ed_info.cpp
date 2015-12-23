@@ -669,6 +669,7 @@ std::vector<RouteNodeInterop *> ED_Info::find_routes(
 		u64 minimum_profit_per_unit,
 		bool require_large_pad,
 		bool avoid_loops,
+		bool avoid_permit_systems,
 		double laden_jump_distance,
 		int max_price_age_days){
 	std::multimap<double, std::shared_ptr<RouteNode>> routes;
@@ -705,14 +706,17 @@ std::vector<RouteNodeInterop *> ED_Info::find_routes(
 				u64 src, dst, commodity_id, profit_per_unit;
 				double approximate_distance;
 				routes_from_system >> src >> dst >> commodity_id >> approximate_distance >> profit_per_unit;
-				auto station = this->stations[src];
-				auto collected_at = station->find_economic_entry(this->commodities[commodity_id].get()).collected_at;
+				auto src_station = this->stations[src];
+				auto dst_station = this->stations[dst];
+				if (avoid_permit_systems && (src_station->system->needs_permit || dst_station->system->needs_permit))
+					continue;
+				auto collected_at = src_station->find_economic_entry(this->commodities[commodity_id].get()).collected_at;
 				if (max_price_age_days >= 0 && collected_at <= now_timestamp && (now_timestamp - collected_at) >= max_price_age_seconds)
 					continue;
-				std::shared_ptr<RouteNode> first(new RouteNode(station.get(), constraints));
+				std::shared_ptr<RouteNode> first(new RouteNode(src_station.get(), constraints));
 				first->previous_node = first_node;
 				std::shared_ptr<RouteNode> second(new RouteNode(
-					this->stations[dst].get(),
+					dst_station.get(),
 					this->commodities[commodity_id].get(),
 					approximate_distance,
 					profit_per_unit,
@@ -763,11 +767,14 @@ std::vector<RouteNodeInterop *> ED_Info::find_routes(
 				u64 dst, commodity_id, profit_per_unit;
 				double approximate_distance;
 				routes_from_station >> dst >> commodity_id >> approximate_distance >> profit_per_unit;
+				auto dst_station = this->stations[dst];
+				if (avoid_permit_systems && dst_station->system->needs_permit)
+					continue;
 				auto collected_at = station->find_economic_entry(this->commodities[commodity_id].get()).collected_at;
 				if (max_price_age_days >= 0 && collected_at <= now_timestamp && (now_timestamp - collected_at) >= max_price_age_seconds)
 					continue;
 				std::shared_ptr<RouteNode> segment(new RouteNode(
-					this->stations[dst].get(),
+					dst_station.get(),
 					this->commodities[commodity_id].get(),
 					approximate_distance,
 					profit_per_unit,

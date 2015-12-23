@@ -146,6 +146,7 @@ public: \
 			u64 minimum_profit_per_unit,
 			bool require_large_pad,
 			bool avoid_loops,
+			bool avoid_permit_systems,
 			double laden_jump_distance,
 			int max_price_age_days){
 		return this->find_routes(
@@ -157,6 +158,7 @@ public: \
 			minimum_profit_per_unit,
 			require_large_pad,
 			avoid_loops,
+			avoid_permit_systems,
 			laden_jump_distance,
 			max_price_age_days
 		);
@@ -170,6 +172,7 @@ public: \
 			u64 minimum_profit_per_unit,
 			bool require_large_pad,
 			bool avoid_loops,
+			bool avoid_permit_systems,
 			double laden_jump_distance,
 		int max_price_age_days){
 		auto temp_station = Station::create_virtual_station(around_system.get());
@@ -182,6 +185,7 @@ public: \
 			minimum_profit_per_unit,
 			require_large_pad,
 			avoid_loops,
+			avoid_permit_systems,
 			laden_jump_distance,
 			max_price_age_days
 		);
@@ -195,6 +199,7 @@ public: \
 		u64 minimum_profit_per_unit,
 		bool require_large_pad,
 		bool avoid_loops,
+		bool avoid_permit_systems,
 		double laden_jump_distance,
 		int max_price_age_days
 	);

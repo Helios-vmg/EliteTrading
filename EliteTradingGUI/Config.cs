@@ -19,6 +19,7 @@ namespace EliteTradingGUI
     {
         public bool OnlyLargeLandingPad = false;
         public bool AvoidLoops = true;
+        public bool AvoidPermitSystems = true;
         public int CargoCapacity = -1;
         public long AvailableCredits = -1;
         public uint RequiredStops = 6;
