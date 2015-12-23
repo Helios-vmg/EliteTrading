@@ -406,8 +406,14 @@ void ED_Info::read_economy_csv(){
 
 		auto station_id = data[1];
 		auto commodity_id = data[2];
-		if (!station || station->id != station_id)
-			station = this->stations[station_id];
+		if (!station || station->id != station_id){
+			if (this->stations.size() > station_id)
+				station = this->stations[station_id];
+			else{
+				station.reset();
+				continue;
+			}
+		}
 		station->add_economy(data, this->commodities[commodity_id]);
 	}
 }
