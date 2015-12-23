@@ -215,7 +215,7 @@ namespace EliteTradingGUI
 
         public List<RouteNode> SearchRoutes(Location currentLocation, bool avoidLoops, bool requireLargePad, bool avoidPermitSystems, int cargoCapacity, long initialCredits, uint requiredStops, OptimizationType optimization, ulong minimumProfitPerUnit, double ladenJumpDistance, int maxPriceAgeDays)
         {
-            return SearchRoutes(currentLocation.IsStation, currentLocation.Id, avoidLoops, avoidPermitSystems, requireLargePad, cargoCapacity, initialCredits, requiredStops, optimization, minimumProfitPerUnit, ladenJumpDistance, maxPriceAgeDays);
+            return SearchRoutes(currentLocation.IsStation, currentLocation.Id, avoidLoops, requireLargePad, avoidPermitSystems, cargoCapacity, initialCredits, requiredStops, optimization, minimumProfitPerUnit, ladenJumpDistance, maxPriceAgeDays);
         }
 
         public string GetCommodityName(ulong commodityId)
