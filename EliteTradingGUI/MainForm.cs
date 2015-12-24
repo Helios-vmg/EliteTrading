@@ -15,8 +15,14 @@ namespace EliteTradingGUI
     public partial class MainForm : Form, IDisposable
     {
         private EdInfo _info;
+        private List<RouteNode> _routes;
+        private Dictionary<ulong, SystemPoint> _points;
         private Config _config = Config.Load();
         private EdInfo.Location _currentLocation;
+        private delegate void OnFinishedProcessingDelegate();
+        private delegate void ReportProgressDelegate(string s);
+        private delegate void OnFinishedSearchingRoutesDelegate();
+
         private EdInfo.Location CurrentLocation
         {
             get
@@ -123,8 +129,6 @@ namespace EliteTradingGUI
             SearchRadiusInput.Text = _config.SearchRadius.ToString();
         }
 
-        private delegate void OnFinishedProcessingDelegate();
-
         public void OnFinishedProcessing()
         {
             if (InvokeRequired)
@@ -132,11 +136,10 @@ namespace EliteTradingGUI
                 BeginInvoke((OnFinishedProcessingDelegate) OnFinishedProcessing);
                 return;
             }
+            _points = _info.GetSystemPointList().ToDictionary(x => x.SystemId);
             Tab.Enabled = true;
             ReportProgress("Ready");
         }
-
-        private delegate void ReportProgressDelegate(string s);
 
         public void ReportProgress(string s)
         {
@@ -230,10 +233,6 @@ namespace EliteTradingGUI
             }
         }
 
-        private delegate void OnFinishedSearchingRoutesDelegate();
-
-        private List<RouteNode> _routes;
-
         private void OnFinishedSearchingRoutes(List<RouteNode> routes)
         {
             if (InvokeRequired)
@@ -316,8 +315,11 @@ namespace EliteTradingGUI
         {
             if (RouteDisplay.SelectedItems.Count == 0)
                 return;
-            var display = new RouteDisplay((RouteNode)RouteDisplay.SelectedItems[0].Tag);
+            var node = (RouteNode) RouteDisplay.SelectedItems[0].Tag;
+            var display = new RouteDisplay(node);
             display.Show();
+            var pointDisplay = new SystemDisplay(_points, node);
+            pointDisplay.Show();
         }
     }
 }

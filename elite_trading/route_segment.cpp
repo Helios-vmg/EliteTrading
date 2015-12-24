@@ -108,9 +108,10 @@ double measure_route_length(const Station *home, const std::vector<StarSystem *>
 double RouteNode::get_exact_segment_cost(){
 	if (!this->previous_node)
 		return 0;
-	auto route = this->station->find_fastest_route(this->previous_node->station, this->constraints->laden_jump_distance);
+	auto route = this->previous_node->station->find_fastest_route(this->station, this->constraints->laden_jump_distance);
 	if (!route)
 		return std::numeric_limits<double>::infinity();
+	this->hop_route = *route;
 	this->true_distance = measure_route_length(this->station, *route);
 	this->hops = (unsigned)route->size();
 	double ret = route->size() * 40;
@@ -184,6 +185,8 @@ RouteNodeInterop *RouteNode::to_interop(){
 	ret->station_id = this->station->id;
 	ret->system_id = this->station->system->id;
 	ret->distance_to_star = this->station->distance_to_star.get_value_or(-1);
+	ret->hop_route = nullptr;
+	ret->hop_route_size = 0;
 	if (this->previous_node){
 		ret->previous = this->previous_node->to_interop();
 		if (this->commodity){
@@ -198,6 +201,10 @@ RouteNodeInterop *RouteNode::to_interop(){
 		ret->cost = this->get_cost();
 		ret->hops = this->hops;
 		ret->distance = this->true_distance;
+		ret->hop_route_size = this->hop_route.size();
+		ret->hop_route = new u64[ret->hop_route_size];
+		for (i32 i = ret->hop_route_size; i--;)
+			ret->hop_route[i] = this->hop_route[i]->id;
 	}
 	return ret;
 }

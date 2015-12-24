@@ -191,5 +191,25 @@ namespace EliteTradingGUI
         {
             return NativeEliteTrading.get_commodity_name(_instance, commodityId);
         }
+
+        public List<SystemPoint> GetSystemPointList()
+        {
+            int size;
+            var pointer = NativeEliteTrading.get_system_point_list(_instance, out size);
+            try
+            {
+                var type = typeof (SystemPoint);
+                var structSize = Marshal.SizeOf(type);
+                var ret = new List<SystemPoint>();
+                ret.Capacity = size;
+                for (int i = 0; i < size; i++)
+                    ret.Add((SystemPoint)Marshal.PtrToStructure(pointer + i * structSize, type));
+                return ret;
+            }
+            finally
+            {
+                NativeEliteTrading.destroy_system_point_list(_instance, pointer, size);
+            }
+        }
     }
 }

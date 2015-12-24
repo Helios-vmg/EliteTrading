@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -25,6 +26,7 @@ namespace EliteTradingGUI
         public double Cost;
         public double Distance;
         public uint Hops;
+        public readonly List<ulong> HopRoute;
 
         public RouteNode(EdInfo info, IntPtr ptr)
         {
@@ -49,6 +51,15 @@ namespace EliteTradingGUI
             Cost = structure.Cost;
             Distance = structure.Distance;
             Hops = structure.Hops;
+            HopRoute = new List<ulong>();
+            HopRoute.Capacity = structure.HopRouteSize;
+            if (structure.HopRoute != IntPtr.Zero)
+            {
+                Debug.Assert(Previous != null);
+                HopRoute.Add(Previous.SystemId);
+                for (int i = 0; i < structure.HopRouteSize; i++)
+                    HopRoute.Add((ulong) Marshal.ReadInt64(structure.HopRoute + i*8));
+            }
         }
 
         private string _locationString;

@@ -7,6 +7,14 @@ using System.Threading.Tasks;
 
 namespace EliteTradingGUI
 {
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct SystemPoint
+    {
+        public ulong SystemId;
+        public double X, Y, Z;
+    }
+
     public static class NativeEliteTrading
     {
         [DllImport("elite_trading.dll", CallingConvention = CallingConvention.Cdecl)]
@@ -58,8 +66,9 @@ namespace EliteTradingGUI
             public double Cost;
             public double Distance;
             public uint Hops;
+            public IntPtr HopRoute;
+            public int HopRouteSize;
         };
-
 
         [StructLayout(LayoutKind.Sequential)]
         public struct RouteSearchConstraints
@@ -85,5 +94,11 @@ namespace EliteTradingGUI
 
         [DllImport("elite_trading.dll", CallingConvention = CallingConvention.Cdecl)]
         public static extern string get_commodity_name(IntPtr instance, ulong commodityId);
+
+        [DllImport("elite_trading.dll", CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr get_system_point_list(IntPtr instance, out int size);
+
+        [DllImport("elite_trading.dll", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void destroy_system_point_list(IntPtr instance, IntPtr list, int size);
     }
 }

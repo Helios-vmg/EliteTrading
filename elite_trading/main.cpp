@@ -124,3 +124,28 @@ EXPORT char *get_commodity_name(void *p, u64 commodity_id){
 		return nullptr;
 	return return_string(info->commodities[commodity_id]->name);
 }
+
+struct SystemPoint{
+	u64 system_id;
+	double x, y, z;
+};
+
+EXPORT void *get_system_point_list(void *p, i32 *size){
+	auto info = (ED_Info *)p;
+	size_t n = info->systems.size();
+	auto ret = new SystemPoint[n];
+	for (size_t i = n; i--;){
+		auto &point = ret[i];
+		auto &system = *info->systems[i];
+		point.system_id = system.id;
+		point.x = system.x;
+		point.y = system.y;
+		point.z = system.z;
+	}
+	*size = (i32)n;
+	return ret;
+}
+
+EXPORT void destroy_system_point_list(void *p, void *list, i32 size){
+	delete[] (SystemPoint *)list;
+}

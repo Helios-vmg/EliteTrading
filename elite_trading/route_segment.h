@@ -84,6 +84,7 @@ public:
 	u64 available_funds;
 	unsigned hops;
 	double true_distance;
+	std::vector<StarSystem *> hop_route;
 
 	u64 get_profit(){
 		if (!this->memo_profit.is_initialized())
@@ -136,8 +137,10 @@ struct RouteNodeInterop{
 	double cost;
 	double distance;
 	u32 hops;
+	u64 *hop_route;
+	i32 hop_route_size;
 	~RouteNodeInterop() {
-		if (this->previous)
-			delete this->previous;
+		delete this->previous;
+		delete[] this->hop_route;
 	}
 };
