@@ -114,6 +114,7 @@
       <DependentUpon>RouteDisplay.cs</DependentUpon>
     </Compile>
     <Compile Include="RouteNode.cs" />
+    <Compile Include="Util.cs" />
     <EmbeddedResource Include="LocationSearchDialog.resx">
       <DependentUpon>LocationSearchDialog.cs</DependentUpon>
     </EmbeddedResource>

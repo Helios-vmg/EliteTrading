@@ -1,4 +1,28 @@
 #include "route_segment.h"
+#include "ed_info.h"
+
+RouteNode::RouteNode(Station *dst, const RouteSearchConstraints &constraints){
+	this->station = dst;
+	this->commodity = nullptr;
+	this->approximate_distance = 0;
+	this->profit_per_unit = 0;
+	this->constraints = &constraints;
+	this->available_funds = constraints.initial_funds;
+}
+
+RouteNode::RouteNode(
+		Station *dst,
+		Commodity *c,
+		double approx_dist,
+		u64 profit,
+		const RouteSearchConstraints &constraints){
+	this->station = dst;
+	this->commodity = c;
+	this->approximate_distance = approx_dist;
+	this->profit_per_unit = profit;
+	this->constraints = &constraints;
+	this->available_funds = constraints.initial_funds;
+}
 
 bool RouteNode::meets_constraints(std::set<u64> &visited){
 	if (this->constraints->require_large_pad && this->station->max_landing_pad_size < 1)

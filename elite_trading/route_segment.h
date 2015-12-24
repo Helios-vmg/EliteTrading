@@ -5,27 +5,6 @@
 #include <boost/optional.hpp>
 #include <set>
 
-struct RouteConstraints{
-	unsigned max_capacity;
-	u64 initial_funds;
-	bool require_large_pad;
-	bool avoid_loops;
-	double laden_jump_distance;
-
-	RouteConstraints(
-			unsigned max_capacity,
-			u64 initial_funds,
-			bool require_large_pad,
-			bool avoid_loops,
-			double laden_jump_distance){
-		this->max_capacity = max_capacity;
-		this->initial_funds = initial_funds;
-		this->require_large_pad = require_large_pad;
-		this->avoid_loops = avoid_loops;
-		this->laden_jump_distance = laden_jump_distance;
-	}
-};
-
 struct RouteNodeInterop;
 
 inline double zero_div(double a, double b){
@@ -74,6 +53,8 @@ public:
 //#define OPTIONAL Maybe
 #define OPTIONAL boost::optional
 
+struct RouteSearchConstraints;
+
 class RouteNode{
 	OPTIONAL<double> memo_efficiency,
 		memo_cost,
@@ -85,34 +66,21 @@ class RouteNode{
 	double get_exact_segment_cost();
 	bool meets_constraints(std::set<u64> &);
 public:
-	RouteNode(Station *dst, const RouteConstraints &constraints){
-		this->station = dst;
-		this->commodity = nullptr;
-		this->approximate_distance = 0;
-		this->profit_per_unit = 0;
-		this->constraints = &constraints;
-		this->available_funds = constraints.initial_funds;
-	}
+	RouteNode(Station *dst, const RouteSearchConstraints &constraints);
 	RouteNode(
-			Station *dst,
-			Commodity *c,
-			double approx_dist,
-			u64 profit,
-			const RouteConstraints &constraints){
-		this->station = dst;
-		this->commodity = c;
-		this->approximate_distance = approx_dist;
-		this->profit_per_unit = profit;
-		this->constraints = &constraints;
-		this->available_funds = constraints.initial_funds;
-	}
+		Station *dst,
+		Commodity *c,
+		double approx_dist,
+		u64 profit,
+		const RouteSearchConstraints &constraints
+	);
 
 	Station *station;
 	Commodity *commodity;
 	double approximate_distance;
 	u64 profit_per_unit;
 	std::shared_ptr<RouteNode> previous_node;
-	const RouteConstraints *constraints;
+	const RouteSearchConstraints *constraints;
 	u64 available_funds;
 	unsigned hops;
 	double true_distance;

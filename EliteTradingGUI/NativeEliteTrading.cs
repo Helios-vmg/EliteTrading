@@ -60,20 +60,24 @@ namespace EliteTradingGUI
             public uint Hops;
         };
 
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct RouteSearchConstraints
+        {
+            public ulong InitialFunds;
+            public ulong MinimumProfitPerUnit;
+            public double LadenJumpDistance;
+            public uint MaxCapacity;
+            public uint RequiredStops;
+            public uint Optimization;
+            public int MaxPriceAgeDays;
+            public byte RequireLargePad;
+            public byte AvoidLoops;
+            public byte AvoidPermitSystems;
+        };
+
         [DllImport("elite_trading.dll", CallingConvention = CallingConvention.Cdecl)]
-        public static extern IntPtr search_nearby_routes(
-            IntPtr instance,
-            out int resultSize,
-            ulong currentLocation,
-            uint flags,
-            int cargoCapacity,
-            long initialCredits,
-            uint requiredStops,
-            int optimizationSetting,
-            ulong minimumProfitPerUnit,
-            double ladenJumpDistance,
-            int maxPriceAgeDays
-        );
+        public static extern IntPtr search_nearby_routes(IntPtr instance, out int resultSize, ulong currentLocation, int locationIsStation, RouteSearchConstraints constraints);
 
         [DllImport("elite_trading.dll", CallingConvention = CallingConvention.Cdecl)]
         public static extern void destroy_routes(IntPtr instance, IntPtr routes, int size);

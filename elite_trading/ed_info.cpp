@@ -666,26 +666,14 @@ void insert_into_multimap(
 
 //#define MEASURE_TIMES
 
-std::vector<RouteNodeInterop *> ED_Info::find_routes(
-		Station *around_station,
-		unsigned max_capacity,
-		u64 initial_funds,
-		unsigned required_stops,
-		OptimizationType optimization,
-		u64 minimum_profit_per_unit,
-		bool require_large_pad,
-		bool avoid_loops,
-		bool avoid_permit_systems,
-		double laden_jump_distance,
-		int max_price_age_days){
+std::vector<RouteNodeInterop *> ED_Info::find_routes(Station *around_station, const RouteSearchConstraints &constraints){
 	std::multimap<double, std::shared_ptr<RouteNode>> routes;
 	double max_in_map = 0;
-	RouteConstraints constraints(max_capacity, initial_funds, require_large_pad, avoid_loops, laden_jump_distance);
 	std::shared_ptr<RouteNode> first_node(new RouteNode(around_station, constraints));
 	auto around_system = around_station->system;
 	route_node_sort_f sort;
 	route_node_criterium_f criterium;
-	switch (optimization) {
+	switch ((OptimizationType)constraints.optimization) {
 		case OptimizationType::OptimizeEfficiency:
 			sort = nodes_by_efficiency;
 			criterium = get_node_efficiency;
@@ -699,25 +687,25 @@ std::vector<RouteNodeInterop *> ED_Info::find_routes(
 			break;
 	}
 	const size_t max_routes_per_loop = 10000;
-	auto now_timestamp = time(nullptr);
-	auto max_price_age_seconds = max_price_age_days * 86400;
+	auto now_timestamp = (std::make_unsigned<decltype(time(nullptr))>::type)time(nullptr);
+	auto max_price_age_seconds = constraints.max_price_age_days * 86400;
 	DB db(database_path);
 	{
 		auto candidate_systems = this->find_route_candidate_systems(around_system);
 
 		auto routes_from_system = db << "select station_src, station_dst, commodity_id, approximate_distance, profit_per_unit from single_stop_routes where system_src = ? and profit_per_unit >= ?;";
 		for (auto system : candidate_systems){
-			routes_from_system << Reset() << system->id << minimum_profit_per_unit;
+			routes_from_system << Reset() << system->id << constraints.minimum_profit_per_unit;
 			while (routes_from_system.step() == SQLITE_ROW){
 				u64 src, dst, commodity_id, profit_per_unit;
 				double approximate_distance;
 				routes_from_system >> src >> dst >> commodity_id >> approximate_distance >> profit_per_unit;
 				auto src_station = this->stations[src];
 				auto dst_station = this->stations[dst];
-				if (avoid_permit_systems && (src_station->system->needs_permit.value_or(false) || dst_station->system->needs_permit.value_or(false)))
+				if (constraints.avoid_permit_systems && (src_station->system->needs_permit.value_or(false) || dst_station->system->needs_permit.value_or(false)))
 					continue;
 				auto collected_at = src_station->find_economic_entry(this->commodities[commodity_id].get()).collected_at;
-				if (max_price_age_days >= 0 && collected_at <= now_timestamp && (now_timestamp - collected_at) >= max_price_age_seconds)
+				if (constraints.max_price_age_days >= 0 && collected_at <= now_timestamp && (now_timestamp - collected_at) >= max_price_age_seconds)
 					continue;
 				std::shared_ptr<RouteNode> first(new RouteNode(src_station.get(), constraints));
 				first->previous_node = first_node;
@@ -735,14 +723,14 @@ std::vector<RouteNodeInterop *> ED_Info::find_routes(
 	}
 
 	auto routes_from_station = db << "select station_dst, commodity_id, approximate_distance, profit_per_unit from single_stop_routes where station_src = ? and profit_per_unit >= ?;";
-	unsigned loop = required_stops;
+	unsigned loop = constraints.required_stops;
 #ifdef MEASURE_TIMES
 	double times[5] = {0};
 	auto t00 = std::chrono::high_resolution_clock::now();
 #endif
 
 	while (true){
-		this->progress_callback(generate_progress_string("Searching for routes... ", required_stops - loop, required_stops).c_str());
+		this->progress_callback(generate_progress_string("Searching for routes... ", constraints.required_stops - loop, constraints.required_stops).c_str());
 #ifdef MEASURE_TIMES
 		auto t10 = std::chrono::high_resolution_clock::now();
 #endif
@@ -768,16 +756,16 @@ std::vector<RouteNodeInterop *> ED_Info::find_routes(
 		
 		for (auto &station_route_pair : routes_by_station){
 			auto station = this->stations[station_route_pair.first];
-			routes_from_station << Reset() << station_route_pair.first << minimum_profit_per_unit;
+			routes_from_station << Reset() << station_route_pair.first << constraints.minimum_profit_per_unit;
 			while (routes_from_station.step() == SQLITE_ROW){
 				u64 dst, commodity_id, profit_per_unit;
 				double approximate_distance;
 				routes_from_station >> dst >> commodity_id >> approximate_distance >> profit_per_unit;
 				auto dst_station = this->stations[dst];
-				if (avoid_permit_systems && dst_station->system->needs_permit.value_or(false))
+				if (constraints.avoid_permit_systems && dst_station->system->needs_permit.value_or(false))
 					continue;
 				auto collected_at = station->find_economic_entry(this->commodities[commodity_id].get()).collected_at;
-				if (max_price_age_days >= 0 && collected_at <= now_timestamp && (now_timestamp - collected_at) >= max_price_age_seconds)
+				if (constraints.max_price_age_days >= 0 && collected_at <= now_timestamp && (now_timestamp - collected_at) >= max_price_age_seconds)
 					continue;
 				std::shared_ptr<RouteNode> segment(new RouteNode(
 					dst_station.get(),

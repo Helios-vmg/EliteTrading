@@ -159,41 +159,10 @@ namespace EliteTradingGUI
             return ret;
         }
 
-        [Flags]
-        private enum SearchFlags
-        {
-            None = 0,
-            CurrentLocationIsStation = 1,
-            AvoidLoops = 2,
-            RequireLargePad = 4,
-            AvoidPermitSystems = 8,
-        }
-
-        private List<RouteNode> SearchRoutes(bool isStation, ulong id, bool avoidLoops, bool requireLargePad, bool avoidPermitSystems, int cargoCapacity, long initialCredits, uint requiredStops, OptimizationType optimization, ulong minimumProfitPerUnit, double ladenJumpDistance, int maxPriceAgeDays)
+        private List<RouteNode> SearchRoutes(bool isStation, ulong id, NativeEliteTrading.RouteSearchConstraints constraints)
         {
             int size;
-            SearchFlags flags = SearchFlags.None;
-            if (isStation)
-                flags |= SearchFlags.CurrentLocationIsStation;
-            if (avoidLoops)
-                flags |= SearchFlags.AvoidLoops;
-            if (requireLargePad)
-                flags |= SearchFlags.RequireLargePad;
-            if (avoidPermitSystems)
-                flags |= SearchFlags.AvoidPermitSystems;
-            var routes = NativeEliteTrading.search_nearby_routes(
-                _instance,
-                out size,
-                id,
-                (uint)flags,
-                cargoCapacity,
-                initialCredits,
-                requiredStops,
-                (int)optimization,
-                minimumProfitPerUnit,
-                ladenJumpDistance,
-                maxPriceAgeDays
-            );
+            var routes = NativeEliteTrading.search_nearby_routes(_instance, out size, id, isStation ? 1 : 0, constraints);
             try
             {
                 var ret = new List<RouteNode>();
@@ -213,9 +182,9 @@ namespace EliteTradingGUI
             }
         }
 
-        public List<RouteNode> SearchRoutes(Location currentLocation, bool avoidLoops, bool requireLargePad, bool avoidPermitSystems, int cargoCapacity, long initialCredits, uint requiredStops, OptimizationType optimization, ulong minimumProfitPerUnit, double ladenJumpDistance, int maxPriceAgeDays)
+        public List<RouteNode> SearchRoutes(Location currentLocation, NativeEliteTrading.RouteSearchConstraints constraints)
         {
-            return SearchRoutes(currentLocation.IsStation, currentLocation.Id, avoidLoops, requireLargePad, avoidPermitSystems, cargoCapacity, initialCredits, requiredStops, optimization, minimumProfitPerUnit, ladenJumpDistance, maxPriceAgeDays);
+            return SearchRoutes(currentLocation.IsStation, currentLocation.Id, constraints);
         }
 
         public string GetCommodityName(ulong commodityId)

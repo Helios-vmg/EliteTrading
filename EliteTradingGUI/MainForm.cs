@@ -189,21 +189,22 @@ namespace EliteTradingGUI
 
             Tab.Enabled = false;
             var form = this;
+            NativeEliteTrading.RouteSearchConstraints constraints = new NativeEliteTrading.RouteSearchConstraints
+            {
+                InitialFunds = Util.ToUlongWithInfinity(_config.AvailableCredits),
+                MinimumProfitPerUnit = _config.MinimumProfitPerUnit,
+                LadenJumpDistance = _config.LadenJumpDistance,
+                MaxCapacity = Util.ToUintWithInfinity(_config.CargoCapacity),
+                RequiredStops = _config.RequiredStops,
+                Optimization = (uint)_config.Optimization,
+                MaxPriceAgeDays = _config.MaxPriceAgeDays,
+                RequireLargePad = Util.ToByte(_config.OnlyLargeLandingPad),
+                AvoidLoops = Util.ToByte(_config.AvoidLoops),
+                AvoidPermitSystems = Util.ToByte(_config.AvoidPermitSystems),
+            };
             var thread = new Thread(x =>
             {
-                var routes = _info.SearchRoutes(
-                    _currentLocation,
-                    _config.AvoidLoops,
-                    _config.OnlyLargeLandingPad,
-                    _config.AvoidPermitSystems,
-                    _config.CargoCapacity,
-                    _config.AvailableCredits,
-                    _config.RequiredStops,
-                    _config.Optimization,
-                    _config.MinimumProfitPerUnit,
-                    _config.LadenJumpDistance,
-                    _config.MaxPriceAgeDays
-                );
+                var routes = _info.SearchRoutes(_currentLocation, constraints);
                 form.OnFinishedSearchingRoutes(routes);
             });
             thread.Start();

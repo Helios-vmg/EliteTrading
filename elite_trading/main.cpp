@@ -88,64 +88,22 @@ bool check_flag(u32 var, u32 flag){
 	return (var & flag) == flag;
 }
 
-EXPORT void *search_nearby_routes(
-		void *p,
-		i32 *result_size,
-		u64 current_location,
-		u32 flags,
-		i32 cargo_capacity,
-		i64 initial_credits,
-		u32 required_stops,
-		i32 optimization_setting,
-		u64 minimum_profit_per_unit,
-		double laden_jump_distance,
-		int max_price_age_days){
-	if (!required_stops)
+EXPORT void *search_nearby_routes(void *p, i32 *result_size, u64 current_location, i32 location_is_station, const RouteSearchConstraints *constraints){
+	if (!constraints->required_stops)
 		return nullptr;
 	auto info = (ED_Info *)p;
-	unsigned cargo = cargo_capacity < 0 ? std::numeric_limits<unsigned>::max(): (unsigned)cargo_capacity;
-	u64 funds = initial_credits < 0 ? std::numeric_limits<u64>::max() : (u64)initial_credits;
-	auto optimization = (OptimizationType)optimization_setting;
-	bool require_large_pad = check_flag(flags, require_large_pad_flag);
-	bool avoid_loops = check_flag(flags, avoid_loops_flag);
-	bool avoid_permit_systems = check_flag(flags, avoid_permit_systems_flag);
 	std::vector<RouteNodeInterop *> routes;
-	if (check_flag(flags, current_location_is_station_flag)){
+	if (location_is_station){
 		if (info->stations.size() <= current_location)
 			return nullptr;
 		auto location = info->stations[current_location];
-		routes = info->find_routes(
-			location,
-			cargo,
-			funds,
-			required_stops,
-			optimization,
-			minimum_profit_per_unit,
-			require_large_pad,
-			avoid_loops,
-			avoid_permit_systems,
-			laden_jump_distance,
-			max_price_age_days
-		);
+		routes = info->find_routes(location, *constraints);
 	}else{
 		if (info->systems.size() <= current_location)
 			return nullptr;
 		auto location = info->systems[current_location];
-		routes = info->find_routes(
-			location,
-			cargo,
-			funds,
-			required_stops,
-			optimization,
-			minimum_profit_per_unit,
-			require_large_pad,
-			avoid_loops,
-			avoid_permit_systems,
-			laden_jump_distance,
-			max_price_age_days
-		);
+		routes = info->find_routes(location, *constraints);
 	}
-
 	auto ret = new RouteNodeInterop *[routes.size()];
 	if (routes.size())
 		memcpy(ret, &routes[0], routes.size() * sizeof(routes[0]));

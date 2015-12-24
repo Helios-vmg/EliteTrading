@@ -53,6 +53,19 @@ enum class OptimizationType{
 	OptimizeProfit = 2,
 };
 
+struct RouteSearchConstraints{
+	u64 initial_funds;
+	u64 minimum_profit_per_unit;
+	double laden_jump_distance;
+	u32 max_capacity;
+	u32 required_stops;
+	u32 optimization;
+	i32 max_price_age_days;
+	u8 require_large_pad;
+	u8 avoid_loops;
+	u8 avoid_permit_systems;
+};
+
 struct ImportDataCommand{};
 
 class ED_Info{
@@ -137,72 +150,14 @@ public: \
 	ED_Info(const ImportDataCommand &, progress_callback_f);
 	void recompute_all_routes(double max_stop_distance, u64 min_profit_per_unit);
 	std::vector<LocationOption> location_search(const std::string &cs);
-	std::vector<RouteNodeInterop *> find_routes(
-			const std::shared_ptr<Station> &around_station,
-			unsigned max_capacity,
-			u64 initial_funds,
-			unsigned required_stops,
-			OptimizationType optimization,
-			u64 minimum_profit_per_unit,
-			bool require_large_pad,
-			bool avoid_loops,
-			bool avoid_permit_systems,
-			double laden_jump_distance,
-			int max_price_age_days){
-		return this->find_routes(
-			around_station.get(),
-			max_capacity,
-			initial_funds,
-			required_stops,
-			optimization,
-			minimum_profit_per_unit,
-			require_large_pad,
-			avoid_loops,
-			avoid_permit_systems,
-			laden_jump_distance,
-			max_price_age_days
-		);
+	std::vector<RouteNodeInterop *> find_routes(const std::shared_ptr<Station> &around_station, const RouteSearchConstraints &constraints){
+		return this->find_routes(around_station.get(), constraints);
 	}
-	std::vector<RouteNodeInterop *> find_routes(
-			const std::shared_ptr<StarSystem> &around_system,
-			unsigned max_capacity,
-			u64 initial_funds,
-			unsigned required_stops,
-			OptimizationType optimization,
-			u64 minimum_profit_per_unit,
-			bool require_large_pad,
-			bool avoid_loops,
-			bool avoid_permit_systems,
-			double laden_jump_distance,
-		int max_price_age_days){
+	std::vector<RouteNodeInterop *> find_routes(const std::shared_ptr<StarSystem> &around_system, const RouteSearchConstraints &constraints){
 		auto temp_station = Station::create_virtual_station(around_system.get());
-		return this->find_routes(
-			temp_station.get(),
-			max_capacity,
-			initial_funds,
-			required_stops,
-			optimization,
-			minimum_profit_per_unit,
-			require_large_pad,
-			avoid_loops,
-			avoid_permit_systems,
-			laden_jump_distance,
-			max_price_age_days
-		);
+		return this->find_routes(temp_station.get(), constraints);
 	}
-	std::vector<RouteNodeInterop *> find_routes(
-		Station *around_station,
-		unsigned max_capacity,
-		u64 initial_funds,
-		unsigned required_stops,
-		OptimizationType optimization,
-		u64 minimum_profit_per_unit,
-		bool require_large_pad,
-		bool avoid_loops,
-		bool avoid_permit_systems,
-		double laden_jump_distance,
-		int max_price_age_days
-	);
+	std::vector<RouteNodeInterop *> find_routes(Station *around_station, const RouteSearchConstraints &constraints);
 	void save_to_db();
 	std::shared_ptr<Commodity> ED_Info::get_commodity(const std::string &name);
 };
