@@ -27,6 +27,7 @@ namespace EliteTradingGUI
         public ulong MinimumProfitPerUnit = 1000;
         public double LadenJumpDistance = -1;
         public int MaxPriceAgeDays = -1;
+        public double SearchRadius = 70;
 
         private static string GetLocation()
         {

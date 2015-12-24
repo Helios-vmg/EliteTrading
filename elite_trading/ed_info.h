@@ -57,6 +57,7 @@ struct RouteSearchConstraints{
 	u64 initial_funds;
 	u64 minimum_profit_per_unit;
 	double laden_jump_distance;
+	double search_radius;
 	u32 max_capacity;
 	u32 required_stops;
 	u32 optimization;
@@ -112,7 +113,7 @@ private:
 		u64 min_profit_per_unit;
 	};
 	static void thread_func(thread_func_params params);
-	std::vector<StarSystem *> find_route_candidate_systems(const StarSystem *around_system);
+	std::vector<StarSystem *> find_route_candidate_systems(const StarSystem *around_system, double radius);
 	std::map<std::string, std::shared_ptr<Commodity>> commodities_by_name;
 	progress_callback_f progress_callback;
 public:

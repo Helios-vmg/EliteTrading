@@ -67,6 +67,7 @@ namespace EliteTradingGUI
             public ulong InitialFunds;
             public ulong MinimumProfitPerUnit;
             public double LadenJumpDistance;
+            public double SearchRadius;
             public uint MaxCapacity;
             public uint RequiredStops;
             public uint Optimization;

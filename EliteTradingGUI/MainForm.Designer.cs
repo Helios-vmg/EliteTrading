@@ -63,6 +63,8 @@
             this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.OptimizeProfitRadio = new System.Windows.Forms.RadioButton();
             this.OptimizeEfficiencyRadio = new System.Windows.Forms.RadioButton();
+            this.SearchRadiusInput = new System.Windows.Forms.TextBox();
+            this.label8 = new System.Windows.Forms.Label();
             this.statusStrip1.SuspendLayout();
             this.Tabs.SuspendLayout();
             this.Tab.SuspendLayout();
@@ -169,7 +171,9 @@
             // 
             this.panel1.AutoSize = true;
             this.panel1.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.panel1.Controls.Add(this.SearchRadiusInput);
             this.panel1.Controls.Add(this.label7);
+            this.panel1.Controls.Add(this.label8);
             this.panel1.Controls.Add(this.MaxPriceAgeInput);
             this.panel1.Controls.Add(this.MinProfitPerUnitInput);
             this.panel1.Controls.Add(this.label1);
@@ -186,7 +190,7 @@
             // label7
             // 
             this.label7.AutoSize = true;
-            this.label7.Location = new System.Drawing.Point(216, 151);
+            this.label7.Location = new System.Drawing.Point(213, 151);
             this.label7.Margin = new System.Windows.Forms.Padding(3);
             this.label7.Name = "label7";
             this.label7.Size = new System.Drawing.Size(111, 13);
@@ -196,7 +200,7 @@
             // 
             // MaxPriceAgeInput
             // 
-            this.MaxPriceAgeInput.Location = new System.Drawing.Point(333, 149);
+            this.MaxPriceAgeInput.Location = new System.Drawing.Point(330, 149);
             this.MaxPriceAgeInput.Maximum = new decimal(new int[] {
             365,
             0,
@@ -208,7 +212,7 @@
             0,
             -2147483648});
             this.MaxPriceAgeInput.Name = "MaxPriceAgeInput";
-            this.MaxPriceAgeInput.Size = new System.Drawing.Size(70, 20);
+            this.MaxPriceAgeInput.Size = new System.Drawing.Size(73, 20);
             this.MaxPriceAgeInput.TabIndex = 15;
             this.MaxPriceAgeInput.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
             this.MaxPriceAgeInput.Value = new decimal(new int[] {
@@ -474,6 +478,25 @@
             this.OptimizeEfficiencyRadio.Text = "Optimize route efficiency";
             this.OptimizeEfficiencyRadio.UseVisualStyleBackColor = true;
             // 
+            // SearchRadiusInput
+            // 
+            this.SearchRadiusInput.Location = new System.Drawing.Point(295, 175);
+            this.SearchRadiusInput.MaxLength = 64;
+            this.SearchRadiusInput.Name = "SearchRadiusInput";
+            this.SearchRadiusInput.Size = new System.Drawing.Size(106, 20);
+            this.SearchRadiusInput.TabIndex = 17;
+            this.SearchRadiusInput.Text = "70";
+            this.SearchRadiusInput.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
+            // 
+            // label8
+            // 
+            this.label8.AutoSize = true;
+            this.label8.Location = new System.Drawing.Point(214, 178);
+            this.label8.Name = "label8";
+            this.label8.Size = new System.Drawing.Size(75, 13);
+            this.label8.TabIndex = 16;
+            this.label8.Text = "Search radius:";
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -543,5 +566,7 @@
         private System.Windows.Forms.Label label7;
         private System.Windows.Forms.NumericUpDown MaxPriceAgeInput;
         private System.Windows.Forms.CheckBox cbAvoidPermitSystems;
+        private System.Windows.Forms.TextBox SearchRadiusInput;
+        private System.Windows.Forms.Label label8;
     }
 }

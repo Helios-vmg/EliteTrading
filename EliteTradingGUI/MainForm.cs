@@ -120,6 +120,7 @@ namespace EliteTradingGUI
             LadenJumpDistanceInput.Text = _config.LadenJumpDistance.ToString();
             MaxPriceAgeInput.Value = _config.MaxPriceAgeDays;
             cbAvoidPermitSystems.Checked = _config.AvoidPermitSystems;
+            SearchRadiusInput.Text = _config.SearchRadius.ToString();
         }
 
         private delegate void OnFinishedProcessingDelegate();
@@ -185,6 +186,11 @@ namespace EliteTradingGUI
             }
             _config.MaxPriceAgeDays = Convert.ToInt32(MaxPriceAgeInput.Value);
             _config.AvoidPermitSystems = cbAvoidPermitSystems.Checked;
+            if (!double.TryParse(SearchRadiusInput.Text, out _config.SearchRadius))
+            {
+                MessageBox.Show("The search radius must be a real number.", "Parsing error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
             _config.Save();
 
             Tab.Enabled = false;
@@ -201,6 +207,7 @@ namespace EliteTradingGUI
                 RequireLargePad = Util.ToByte(_config.OnlyLargeLandingPad),
                 AvoidLoops = Util.ToByte(_config.AvoidLoops),
                 AvoidPermitSystems = Util.ToByte(_config.AvoidPermitSystems),
+                SearchRadius = _config.SearchRadius,
             };
             var thread = new Thread(x =>
             {

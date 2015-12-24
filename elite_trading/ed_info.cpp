@@ -607,13 +607,13 @@ std::vector<LocationOption> ED_Info::location_search(const std::string &location
 	return ret;
 }
 
-std::vector<StarSystem *> ED_Info::find_route_candidate_systems(const StarSystem *around_system) {
+std::vector<StarSystem *> ED_Info::find_route_candidate_systems(const StarSystem *around_system, double radius) {
 	std::vector<StarSystem *> ret;
 	for (auto &system : this->systems){
 		if (!system)
 			continue;
 		//TODO: Replace 70 with a read from somewhere.
-		if (around_system->distance(system.get()) <= 70)
+		if (around_system->distance(system.get()) <= radius)
 			ret.push_back(system.get());
 	}
 	return ret;
@@ -691,7 +691,7 @@ std::vector<RouteNodeInterop *> ED_Info::find_routes(Station *around_station, co
 	auto max_price_age_seconds = constraints.max_price_age_days * 86400;
 	DB db(database_path);
 	{
-		auto candidate_systems = this->find_route_candidate_systems(around_system);
+		auto candidate_systems = this->find_route_candidate_systems(around_system, constraints.search_radius);
 
 		auto routes_from_system = db << "select station_src, station_dst, commodity_id, approximate_distance, profit_per_unit from single_stop_routes where system_src = ? and profit_per_unit >= ?;";
 		for (auto system : candidate_systems){
