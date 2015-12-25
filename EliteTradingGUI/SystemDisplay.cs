@@ -134,26 +134,38 @@ namespace EliteTradingGUI
 
         private void SystemDisplay_Paint(object sender, PaintEventArgs e)
         {
-            var bounds = ReverseTransform(_bounds);
-            for (int i = 0; i < _route.Count; i++)
+            using (var font = new Font("Tahoma", 10))
             {
-                var node = _route[i];
-                var point = _transform(_points[node.SystemId]);
-                DrawCircle(_redBrush, point, 4);
-                if (i > 0){
-                    for (int j = 1; j < node.HopRoute.Count; j++)
+                int index = 0;
+                var bounds = ReverseTransform(_bounds);
+                for (int i = 0; i < _route.Count; i++)
+                {
+                    var node = _route[i];
+                    var point = _transform(_points[node.SystemId]);
+                    DrawCircle(_redBrush, point, 4);
+                    if (i > 0)
                     {
-                        var hop = node.HopRoute[j];
-                        var previousHop = node.HopRoute[j - 1];
-                        var A = _transform(_points[previousHop]);
-                        var B = _transform(_points[hop]);
-                        _graphics.DrawLine(_arrowPen, A, B);
+                        //for (int j = 1; j < node.HopRoute.Count; j++)
+                        //{
+                        //    var hop = node.HopRoute[j];
+                        //    var previousHop = node.HopRoute[j - 1];
+                        //    var A = _transform(_points[previousHop]);
+                        //    var B = _transform(_points[hop]);
+                        //    _graphics.DrawLine(_arrowPen, A, B);
+                        //    _graphics.DrawString(index.ToString(), font, _redBrush, new PointF(B.X, B.Y - 20));
+                        //    index++;
+                        //}
+                        _graphics.DrawLine(_arrowPen, _transform(_points[_route[i - 1].SystemId]), point);
                     }
-                    //_graphics.DrawLine(_arrowPen, _transform(_points[_route[i - 1].SystemId]), point);
+                    else
+                    {
+                        _graphics.DrawString(index.ToString(), font, _redBrush, new PointF(point.X, point.Y - 20));
+                        index++;
+                    }
                 }
+                //foreach (var point in _points.Values.Where(x => bounds.Contains(x)).Select(p => _transform(p)))
+                //    DrawCircle(_blackBrush, point, 2);
             }
-            foreach (var point in _points.Values.Where(x => bounds.Contains(x)).Select(p => _transform(p)))
-                DrawCircle(_blackBrush, point, 2);
         }
 
         private void SystemDisplay_SizeChanged(object sender, EventArgs e)

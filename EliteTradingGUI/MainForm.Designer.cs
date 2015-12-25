@@ -65,7 +65,6 @@
             this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.OptimizeProfitRadio = new System.Windows.Forms.RadioButton();
             this.OptimizeEfficiencyRadio = new System.Windows.Forms.RadioButton();
-            this.button1 = new System.Windows.Forms.Button();
             this.statusStrip1.SuspendLayout();
             this.Tabs.SuspendLayout();
             this.Tab.SuspendLayout();
@@ -172,7 +171,6 @@
             // 
             this.panel1.AutoSize = true;
             this.panel1.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
-            this.panel1.Controls.Add(this.button1);
             this.panel1.Controls.Add(this.SearchRadiusInput);
             this.panel1.Controls.Add(this.label7);
             this.panel1.Controls.Add(this.label8);
@@ -499,15 +497,6 @@
             this.OptimizeEfficiencyRadio.Text = "Optimize route efficiency";
             this.OptimizeEfficiencyRadio.UseVisualStyleBackColor = true;
             // 
-            // button1
-            // 
-            this.button1.Location = new System.Drawing.Point(573, 93);
-            this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(75, 23);
-            this.button1.TabIndex = 18;
-            this.button1.Text = "button1";
-            this.button1.UseVisualStyleBackColor = true;
-            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -579,6 +568,5 @@
         private System.Windows.Forms.CheckBox cbAvoidPermitSystems;
         private System.Windows.Forms.TextBox SearchRadiusInput;
         private System.Windows.Forms.Label label8;
-        private System.Windows.Forms.Button button1;
     }
 }
