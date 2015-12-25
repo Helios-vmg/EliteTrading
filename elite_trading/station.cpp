@@ -254,17 +254,19 @@ void Station::save(
 		<< this->max_landing_pad_size
 		<< this->distance_to_star
 		<< this->faction;
-	BasicStringType *array[] = {
-		this->government.get(),
-		this->allegiance.get(),
-		this->state.get(),
-		this->type.get(),
-	};
-	for (auto p : array){
-		if (p)
-			new_station << p->id;
-		else
-			new_station << Null();
+	{
+		BasicStringType *array[] = {
+			this->government.get(),
+			this->allegiance.get(),
+			this->state.get(),
+			this->type.get(),
+		};
+		for (auto p : array){
+			if (p)
+				new_station << p->id;
+			else
+				new_station << Null();
+		}
 	}
 	new_station
 		<< this->get_hasness_bitmap()

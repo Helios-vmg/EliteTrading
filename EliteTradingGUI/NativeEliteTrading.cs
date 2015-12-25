@@ -75,6 +75,7 @@ namespace EliteTradingGUI
             public byte RequireLargePad;
             public byte AvoidLoops;
             public byte AvoidPermitSystems;
+            public byte AvoidPlanetaryStations;
         };
 
         [DllImport("elite_trading.dll", CallingConvention = CallingConvention.Cdecl)]

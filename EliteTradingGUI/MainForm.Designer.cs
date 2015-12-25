@@ -39,7 +39,9 @@
             this.Cost = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.Efficiency = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.panel1 = new System.Windows.Forms.Panel();
+            this.SearchRadiusInput = new System.Windows.Forms.TextBox();
             this.label7 = new System.Windows.Forms.Label();
+            this.label8 = new System.Windows.Forms.Label();
             this.MaxPriceAgeInput = new System.Windows.Forms.NumericUpDown();
             this.MinProfitPerUnitInput = new System.Windows.Forms.TextBox();
             this.label1 = new System.Windows.Forms.Label();
@@ -63,8 +65,7 @@
             this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.OptimizeProfitRadio = new System.Windows.Forms.RadioButton();
             this.OptimizeEfficiencyRadio = new System.Windows.Forms.RadioButton();
-            this.SearchRadiusInput = new System.Windows.Forms.TextBox();
-            this.label8 = new System.Windows.Forms.Label();
+            this.cbAvoidPlanetaryStations = new System.Windows.Forms.CheckBox();
             this.statusStrip1.SuspendLayout();
             this.Tabs.SuspendLayout();
             this.Tab.SuspendLayout();
@@ -141,9 +142,9 @@
             this.Efficiency});
             this.RouteDisplay.Dock = System.Windows.Forms.DockStyle.Fill;
             this.RouteDisplay.FullRowSelect = true;
-            this.RouteDisplay.Location = new System.Drawing.Point(3, 232);
+            this.RouteDisplay.Location = new System.Drawing.Point(3, 255);
             this.RouteDisplay.Name = "RouteDisplay";
-            this.RouteDisplay.Size = new System.Drawing.Size(764, 272);
+            this.RouteDisplay.Size = new System.Drawing.Size(764, 249);
             this.RouteDisplay.TabIndex = 1;
             this.RouteDisplay.UseCompatibleStateImageBehavior = false;
             this.RouteDisplay.View = System.Windows.Forms.View.Details;
@@ -184,8 +185,18 @@
             this.panel1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.panel1.Location = new System.Drawing.Point(3, 3);
             this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(764, 223);
+            this.panel1.Size = new System.Drawing.Size(764, 246);
             this.panel1.TabIndex = 2;
+            // 
+            // SearchRadiusInput
+            // 
+            this.SearchRadiusInput.Location = new System.Drawing.Point(295, 175);
+            this.SearchRadiusInput.MaxLength = 64;
+            this.SearchRadiusInput.Name = "SearchRadiusInput";
+            this.SearchRadiusInput.Size = new System.Drawing.Size(106, 20);
+            this.SearchRadiusInput.TabIndex = 17;
+            this.SearchRadiusInput.Text = "70";
+            this.SearchRadiusInput.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
             // 
             // label7
             // 
@@ -197,6 +208,15 @@
             this.label7.TabIndex = 15;
             this.label7.Text = "Max. price age (days):";
             this.label7.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            // 
+            // label8
+            // 
+            this.label8.AutoSize = true;
+            this.label8.Location = new System.Drawing.Point(214, 178);
+            this.label8.Name = "label8";
+            this.label8.Size = new System.Drawing.Size(75, 13);
+            this.label8.TabIndex = 16;
+            this.label8.Text = "Search radius:";
             // 
             // MaxPriceAgeInput
             // 
@@ -290,6 +310,7 @@
             // 
             this.panel2.AutoSize = true;
             this.panel2.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.panel2.Controls.Add(this.cbAvoidPlanetaryStations);
             this.panel2.Controls.Add(this.cbAvoidPermitSystems);
             this.panel2.Controls.Add(this.LadenJumpDistanceInput);
             this.panel2.Controls.Add(this.label2);
@@ -303,7 +324,7 @@
             this.panel2.Controls.Add(this.RequiredStopsInput);
             this.panel2.Location = new System.Drawing.Point(11, 48);
             this.panel2.Name = "panel2";
-            this.panel2.Size = new System.Drawing.Size(192, 172);
+            this.panel2.Size = new System.Drawing.Size(192, 195);
             this.panel2.TabIndex = 14;
             // 
             // cbAvoidPermitSystems
@@ -320,7 +341,7 @@
             // 
             // LadenJumpDistanceInput
             // 
-            this.LadenJumpDistanceInput.Location = new System.Drawing.Point(114, 123);
+            this.LadenJumpDistanceInput.Location = new System.Drawing.Point(114, 146);
             this.LadenJumpDistanceInput.MaxLength = 64;
             this.LadenJumpDistanceInput.Name = "LadenJumpDistanceInput";
             this.LadenJumpDistanceInput.Size = new System.Drawing.Size(73, 20);
@@ -331,7 +352,7 @@
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(0, 126);
+            this.label2.Location = new System.Drawing.Point(0, 149);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(108, 13);
             this.label2.TabIndex = 13;
@@ -361,7 +382,7 @@
             // 
             // CargoCapacityInput
             // 
-            this.CargoCapacityInput.Location = new System.Drawing.Point(87, 71);
+            this.CargoCapacityInput.Location = new System.Drawing.Point(87, 94);
             this.CargoCapacityInput.MaxLength = 64;
             this.CargoCapacityInput.Name = "CargoCapacityInput";
             this.CargoCapacityInput.Size = new System.Drawing.Size(100, 20);
@@ -372,7 +393,7 @@
             // label3
             // 
             this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(0, 74);
+            this.label3.Location = new System.Drawing.Point(0, 97);
             this.label3.Margin = new System.Windows.Forms.Padding(3);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(81, 13);
@@ -382,7 +403,7 @@
             // 
             // InitialCreditsInput
             // 
-            this.InitialCreditsInput.Location = new System.Drawing.Point(74, 97);
+            this.InitialCreditsInput.Location = new System.Drawing.Point(74, 120);
             this.InitialCreditsInput.MaxLength = 64;
             this.InitialCreditsInput.Name = "InitialCreditsInput";
             this.InitialCreditsInput.Size = new System.Drawing.Size(113, 20);
@@ -393,7 +414,7 @@
             // label4
             // 
             this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(0, 100);
+            this.label4.Location = new System.Drawing.Point(0, 123);
             this.label4.Margin = new System.Windows.Forms.Padding(3);
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(68, 13);
@@ -404,7 +425,7 @@
             // label6
             // 
             this.label6.AutoSize = true;
-            this.label6.Location = new System.Drawing.Point(0, 151);
+            this.label6.Location = new System.Drawing.Point(0, 174);
             this.label6.Margin = new System.Windows.Forms.Padding(3);
             this.label6.Name = "label6";
             this.label6.Size = new System.Drawing.Size(81, 13);
@@ -414,7 +435,7 @@
             // 
             // RequiredStopsInput
             // 
-            this.RequiredStopsInput.Location = new System.Drawing.Point(87, 149);
+            this.RequiredStopsInput.Location = new System.Drawing.Point(87, 172);
             this.RequiredStopsInput.Maximum = new decimal(new int[] {
             1024,
             0,
@@ -437,7 +458,7 @@
             // 
             // SearchButton
             // 
-            this.SearchButton.Location = new System.Drawing.Point(328, 197);
+            this.SearchButton.Location = new System.Drawing.Point(326, 217);
             this.SearchButton.Name = "SearchButton";
             this.SearchButton.Size = new System.Drawing.Size(75, 23);
             this.SearchButton.TabIndex = 8;
@@ -478,24 +499,17 @@
             this.OptimizeEfficiencyRadio.Text = "Optimize route efficiency";
             this.OptimizeEfficiencyRadio.UseVisualStyleBackColor = true;
             // 
-            // SearchRadiusInput
+            // cbAvoidPlanetaryStations
             // 
-            this.SearchRadiusInput.Location = new System.Drawing.Point(295, 175);
-            this.SearchRadiusInput.MaxLength = 64;
-            this.SearchRadiusInput.Name = "SearchRadiusInput";
-            this.SearchRadiusInput.Size = new System.Drawing.Size(106, 20);
-            this.SearchRadiusInput.TabIndex = 17;
-            this.SearchRadiusInput.Text = "70";
-            this.SearchRadiusInput.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
-            // 
-            // label8
-            // 
-            this.label8.AutoSize = true;
-            this.label8.Location = new System.Drawing.Point(214, 178);
-            this.label8.Name = "label8";
-            this.label8.Size = new System.Drawing.Size(75, 13);
-            this.label8.TabIndex = 16;
-            this.label8.Text = "Search radius:";
+            this.cbAvoidPlanetaryStations.AutoSize = true;
+            this.cbAvoidPlanetaryStations.Checked = true;
+            this.cbAvoidPlanetaryStations.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.cbAvoidPlanetaryStations.Location = new System.Drawing.Point(3, 74);
+            this.cbAvoidPlanetaryStations.Name = "cbAvoidPlanetaryStations";
+            this.cbAvoidPlanetaryStations.Size = new System.Drawing.Size(138, 17);
+            this.cbAvoidPlanetaryStations.TabIndex = 16;
+            this.cbAvoidPlanetaryStations.Text = "Avoid planetary stations";
+            this.cbAvoidPlanetaryStations.UseVisualStyleBackColor = true;
             // 
             // MainForm
             // 
@@ -568,5 +582,6 @@
         private System.Windows.Forms.CheckBox cbAvoidPermitSystems;
         private System.Windows.Forms.TextBox SearchRadiusInput;
         private System.Windows.Forms.Label label8;
+        private System.Windows.Forms.CheckBox cbAvoidPlanetaryStations;
     }
 }

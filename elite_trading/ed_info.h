@@ -40,7 +40,7 @@ std::shared_ptr<T> get_basic_string_type(std::vector<std::shared_ptr<T>> &vector
 		return ret;
 	auto it = map.find(name);
 	if (it == map.end()){
-		ret.reset(new T{vector.size(), name});
+		ret.reset(new T(vector.size(), name));
 		vector.push_back(ret);
 		map[name] = ret;
 	}else
@@ -65,6 +65,7 @@ struct RouteSearchConstraints{
 	u8 require_large_pad;
 	u8 avoid_loops;
 	u8 avoid_permit_systems;
+	u8 avoid_planetary_stations;
 };
 
 struct ImportDataCommand{};
@@ -143,7 +144,7 @@ public: \
 	DEFINE_SIMPLE_STRING_TYPE_THINGS(Security, security, security_types)
 	DEFINE_SIMPLE_STRING_TYPE_THINGS(Power, power, powers)
 	DEFINE_SIMPLE_STRING_TYPE_THINGS(PowerState, power_state, power_states)
-	DEFINE_SIMPLE_STRING_TYPE_THINGS(StationType, station_type, station_type)
+	DEFINE_SIMPLE_STRING_TYPE_THINGS(StationType, station_type, station_types)
 	DEFINE_SIMPLE_STRING_TYPE_THINGS(ModuleCategory, module_category, module_categories)
 	DEFINE_SIMPLE_STRING_TYPE_THINGS(CommodityCategory, commodity_category, commodity_categories)
 
