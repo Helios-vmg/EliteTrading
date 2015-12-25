@@ -57,6 +57,7 @@ public:
 };
 
 void ED_Info::read_strings(DB &db){
+	std::vector<std::shared_ptr<BasicStationType>> station_types_temp;
 	std::pair<std::vector<std::shared_ptr<BasicStringType>> *, const char *> string_tables[] = {
 		{ &this->economies, "economies" },
 		{ &this->ships, "ships" },
@@ -66,7 +67,7 @@ void ED_Info::read_strings(DB &db){
 		{ &this->security_types, "security_types" },
 		{ &this->powers, "powers" },
 		{ &this->power_states, "power_states" },
-		{ &this->station_type, "station_types" },
+		{ &station_types_temp, "station_types" },
 		{ &this->module_categories, "module_categories" },
 		{ &this->commodity_categories, "commodity_categories" },
 	};
@@ -82,6 +83,9 @@ void ED_Info::read_strings(DB &db){
 			insert_into(*p.first, id, ptr);
 		}
 	}
+
+	for (auto &type : station_types_temp)
+		insert_into(this->station_types, type->id, std::make_shared<StationType>(*type));
 }
 
 void ED_Info::read_systems(DB &db){
@@ -707,6 +711,12 @@ std::vector<RouteNodeInterop *> ED_Info::find_routes(Station *around_station, co
 				auto collected_at = src_station->find_economic_entry(this->commodities[commodity_id].get()).collected_at;
 				if (constraints.max_price_age_days >= 0 && collected_at <= now_timestamp && (now_timestamp - collected_at) >= max_price_age_seconds)
 					continue;
+				if (constraints.avoid_planetary_stations){
+					if (src_station->type && src_station->type->is_planetary)
+						continue;
+					if (dst_station->type && dst_station->type->is_planetary)
+						continue;
+				}
 				std::shared_ptr<RouteNode> first(new RouteNode(src_station.get(), constraints));
 				first->previous_node = first_node;
 				std::shared_ptr<RouteNode> second(new RouteNode(
@@ -766,6 +776,8 @@ std::vector<RouteNodeInterop *> ED_Info::find_routes(Station *around_station, co
 					continue;
 				auto collected_at = station->find_economic_entry(this->commodities[commodity_id].get()).collected_at;
 				if (constraints.max_price_age_days >= 0 && collected_at <= now_timestamp && (now_timestamp - collected_at) >= max_price_age_seconds)
+					continue;
+				if (constraints.avoid_planetary_stations && dst_station->type && dst_station->type->is_planetary)
 					continue;
 				std::shared_ptr<RouteNode> segment(new RouteNode(
 					dst_station.get(),
@@ -944,6 +956,7 @@ void ED_Info::save_to_db(){
 		"create table config (key text primary key, value text);\n";
 	db.exec(db_string);
 	const char * const create_string_table = "create table %1% (id integer primary key, name text);";
+	std::vector<std::shared_ptr<BasicStationType>> station_types_temp;
 	std::pair<std::vector<std::shared_ptr<BasicStringType>> *, const char *> string_tables[] = {
 		{ &this->economies, "economies" },
 		{ &this->ships, "ships" },
@@ -953,12 +966,15 @@ void ED_Info::save_to_db(){
 		{ &this->security_types, "security_types" },
 		{ &this->powers, "powers" },
 		{ &this->power_states, "power_states" },
-		{ &this->station_type, "station_types" },
+		{ &station_types_temp, "station_types" },
 		{ &this->module_categories, "module_categories" },
 		{ &this->commodity_categories, "commodity_categories" },
 	};
 	for (auto &p : string_tables)
 		db.exec((boost::format(create_string_table) % p.second).str().c_str());
+
+	for (auto &type : station_types_temp)
+		insert_into(this->station_types, type->id, std::make_shared<StationType>(*type));
 		
 	Transaction t(db);
 	this->progress_callback("Saving systems...");

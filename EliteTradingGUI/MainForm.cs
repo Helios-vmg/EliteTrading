@@ -127,6 +127,7 @@ namespace EliteTradingGUI
             MaxPriceAgeInput.Value = _config.MaxPriceAgeDays;
             cbAvoidPermitSystems.Checked = _config.AvoidPermitSystems;
             SearchRadiusInput.Text = _config.SearchRadius.ToString();
+            cbAvoidPlanetaryStations.Checked = _config.AvoidPlanetaryStations;
         }
 
         public void OnFinishedProcessing()
@@ -194,6 +195,7 @@ namespace EliteTradingGUI
                 MessageBox.Show("The search radius must be a real number.", "Parsing error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
+            _config.AvoidPlanetaryStations = cbAvoidPlanetaryStations.Checked;
             _config.Save();
 
             Tab.Enabled = false;
@@ -210,6 +212,7 @@ namespace EliteTradingGUI
                 RequireLargePad = Util.ToByte(_config.OnlyLargeLandingPad),
                 AvoidLoops = Util.ToByte(_config.AvoidLoops),
                 AvoidPermitSystems = Util.ToByte(_config.AvoidPermitSystems),
+                AvoidPlanetaryStations = Util.ToByte(_config.AvoidPlanetaryStations),
                 SearchRadius = _config.SearchRadius,
             };
             var thread = new Thread(x =>

@@ -14,6 +14,7 @@ class BasicStringType{
 public:
 	u64 id;
 	std::string name;
+	BasicStringType(u64 id, const std::string &name): id(id), name(name){}
 };
 
 //#define DEFINE_BASIC_STRING_TYPE(x) \
@@ -32,6 +33,17 @@ DEFINE_BASIC_STRING_TYPE(PlaceState);
 DEFINE_BASIC_STRING_TYPE(Security);
 DEFINE_BASIC_STRING_TYPE(Power);
 DEFINE_BASIC_STRING_TYPE(PowerState);
-DEFINE_BASIC_STRING_TYPE(StationType);
+DEFINE_BASIC_STRING_TYPE(BasicStationType);
 DEFINE_BASIC_STRING_TYPE(ModuleCategory);
 DEFINE_BASIC_STRING_TYPE(CommodityCategory);
+
+class StationType : public BasicStringType{
+public:
+	bool is_planetary;
+	StationType(u64 id, const std::string &name): BasicStringType(id, name) {
+		this->is_planetary = (this->name.find("Planetary") != this->name.npos);
+	}
+	StationType(const BasicStationType &bst): BasicStringType(bst){
+		this->is_planetary = (this->name.find("Planetary") != this->name.npos);
+	}
+};
