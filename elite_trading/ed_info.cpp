@@ -973,8 +973,8 @@ void ED_Info::save_to_db(){
 	for (auto &p : string_tables)
 		db.exec((boost::format(create_string_table) % p.second).str().c_str());
 
-	for (auto &type : station_types_temp)
-		insert_into(this->station_types, type->id, std::make_shared<StationType>(*type));
+	for (auto &type : this->station_types)
+		insert_into(station_types_temp, type->id, std::make_shared<BasicStationType>(*type));
 		
 	Transaction t(db);
 	this->progress_callback("Saving systems...");
