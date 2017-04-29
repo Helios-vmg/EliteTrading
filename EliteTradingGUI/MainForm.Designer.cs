@@ -50,6 +50,7 @@
             this.CurrentLocationLabel = new System.Windows.Forms.Label();
             this.SearchLocationsButton = new System.Windows.Forms.Button();
             this.panel2 = new System.Windows.Forms.Panel();
+            this.cbAvoidPlanetaryStations = new System.Windows.Forms.CheckBox();
             this.cbAvoidPermitSystems = new System.Windows.Forms.CheckBox();
             this.LadenJumpDistanceInput = new System.Windows.Forms.TextBox();
             this.label2 = new System.Windows.Forms.Label();
@@ -65,7 +66,6 @@
             this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.OptimizeProfitRadio = new System.Windows.Forms.RadioButton();
             this.OptimizeEfficiencyRadio = new System.Windows.Forms.RadioButton();
-            this.cbAvoidPlanetaryStations = new System.Windows.Forms.CheckBox();
             this.statusStrip1.SuspendLayout();
             this.Tabs.SuspendLayout();
             this.Tab.SuspendLayout();
@@ -222,7 +222,7 @@
             // 
             this.MaxPriceAgeInput.Location = new System.Drawing.Point(330, 149);
             this.MaxPriceAgeInput.Maximum = new decimal(new int[] {
-            365,
+            36500,
             0,
             0,
             0});
@@ -326,6 +326,18 @@
             this.panel2.Name = "panel2";
             this.panel2.Size = new System.Drawing.Size(192, 195);
             this.panel2.TabIndex = 14;
+            // 
+            // cbAvoidPlanetaryStations
+            // 
+            this.cbAvoidPlanetaryStations.AutoSize = true;
+            this.cbAvoidPlanetaryStations.Checked = true;
+            this.cbAvoidPlanetaryStations.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.cbAvoidPlanetaryStations.Location = new System.Drawing.Point(3, 74);
+            this.cbAvoidPlanetaryStations.Name = "cbAvoidPlanetaryStations";
+            this.cbAvoidPlanetaryStations.Size = new System.Drawing.Size(138, 17);
+            this.cbAvoidPlanetaryStations.TabIndex = 16;
+            this.cbAvoidPlanetaryStations.Text = "Avoid planetary stations";
+            this.cbAvoidPlanetaryStations.UseVisualStyleBackColor = true;
             // 
             // cbAvoidPermitSystems
             // 
@@ -499,16 +511,6 @@
             this.OptimizeEfficiencyRadio.Text = "Optimize route efficiency";
             this.OptimizeEfficiencyRadio.UseVisualStyleBackColor = true;
             // 
-            // cbAvoidPlanetaryStations
-            this.cbAvoidPlanetaryStations.AutoSize = true;
-            this.cbAvoidPlanetaryStations.Checked = true;
-            this.cbAvoidPlanetaryStations.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.cbAvoidPlanetaryStations.Location = new System.Drawing.Point(3, 74);
-            this.cbAvoidPlanetaryStations.Name = "cbAvoidPlanetaryStations";
-            this.cbAvoidPlanetaryStations.Size = new System.Drawing.Size(138, 17);
-            this.cbAvoidPlanetaryStations.TabIndex = 16;
-            this.cbAvoidPlanetaryStations.Text = "Avoid planetary stations";
-            this.cbAvoidPlanetaryStations.UseVisualStyleBackColor = true;
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
